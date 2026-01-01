@@ -1,0 +1,21 @@
+//- views/partials/_contact.pug
+div#contactModal.modal
+  .modal-liner
+    // Keep the CSS scoped so we don't touch the rest of your app
+    style.
+      .hp-wrap{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}
+
+    form#contactForm(method="POST", action="/contact", autocomplete="off")
+      h2.sloped-heading Contact Us
+
+      // Honeypot field (bots often fill this)
+      .hp-wrap(aria-hidden="true")
+        label(for="website") Website
+        input(type="text", name="website", id="website", tabindex="-1", autocomplete="off")
+
+      input(type="text", name="name", placeholder="Your Name", required)
+      input(type="email", name="email", placeholder="Your Email", required)
+      textarea.contact-text-area(name="message", placeholder="Your Message", required)
+      .button-row
+        button#closeModal(type="button") Cancel
+        button(type="submit") Send

@@ -1,0 +1,133 @@
+// styles for the burger bar
+// top nav
+// side nav
+// single nav for both mobile and desktop
+.navwrap, header
+    width 100%
+    //border 2px solid blue
+    align-items start
+    justify-content: space-between
+    padding 0 1rem
+    display flex
+    transform scale(0)
+    transition transform .3s ease-in-out
+    flex-direction column
+    min-height 100vh
+    height 100%
+    background alpha - 60% //beta
+    //position absolute
+    top 0
+    left 0
+    z-index 1
+
+    nav.navbar
+        width 100%
+        max-width max-width
+        display flex
+        flex-direction: column
+        justify-content: space-between
+        align-items: center
+        //border 2px solid red
+        //height 2rem //fit-content
+    ul.navlist
+        list-style none
+        display flex
+        flex-direction column
+        align-items: center
+        //gap 1rem
+        margin 0
+        padding 0
+        li.navitem
+            a
+                text-decoration none
+                color beta //alpha 
+                display flex
+                align-items center
+                font-weight bold
+                padding .4rem .8rem
+                //border 1px solid green
+                &:hover
+                    color beta
+.nav-open
+    transform scale(1)
+    transition transform .3s ease-in-out
+.logo
+    font-size 1.5rem
+    font-weight bold
+    color beta
+.burger
+    background light
+    border 1px solid alpha
+    flex-direction column
+    border-radius 5px
+    height fit-content
+    justify-content center
+    align-items center
+    //height 30px
+    width 40px
+    cursor pointer
+    position fixed
+    top 1rem
+    right 1rem
+    z-index 20
+    padding .2rem
+    span.bar
+        height 5px
+        width 100%
+        background-color alpha
+        margin 4px 0
+        display block
+
+
+@media(min-width 900px)
+    .burger
+        display none
+    .navwrap, header
+        width 100%
+        //background red
+        align-items center
+        justify-content: space-between
+        padding 0 1rem
+        min-height 0
+        height fit-content
+        //display none
+        transform scale(1)
+        transition transform .3s ease-in-out
+        nav.navbar
+            width 100%
+            display flex
+            flex-direction: row
+            justify-content: space-between
+            align-items: center
+            //border 1px solid red
+            //padding-left 1rem
+            //height 2rem //fit-content
+        ul.navlist
+            list-style none
+            //border 3px solid green
+            display grid
+            grid-template-columns repeat(6, 1fr)
+            align-items: center
+            //flex-direction row
+            gap .6rem
+            margin 0
+            padding 0
+            min-width 760px
+            li.navitem
+                //border 1px solid red
+                
+                white-space nowrap
+                padding .3rem
+                a
+                    text-decoration none
+                    color beta //alpha 
+                    display flex
+                    align-items center
+                    font-weight bold
+                    flex-wrap no-wrap
+                    white-space no-wrap
+                    //padding .8rem
+                    //border 1px solid blue
+                    min-width 100%   
+                    &:hover
+                        color beta

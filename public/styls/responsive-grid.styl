@@ -1,0 +1,56 @@
+.responsive-grid
+  display grid
+  grid-template-columns repeat(auto-fit, minmax(var(--rg-min, 350px), 1fr))
+  gap var(--rg-gap, 1rem)
+  width unquote("min(100%, var(--rg-cap, 100%))")
+  margin 2rem auto
+  //padding 2rem 1rem
+  box-sizing border-box
+  width 100%
+.grid-item > span
+    border 1px solid beta
+    color light
+    display block
+    min-width 0
+    margin 0
+    padding 1rem
+    box-sizing border-box
+    overflow-wrap anywhere
+    word-break break-word
+// Example modifiers for special grids and items
+.grid-item-special span
+    background alpha
+
+span.special
+    background dark
+    color light
+
+//usede in flat cards with links
+.grid-item.grid-item-card-link
+    //rder 1px solid alpha
+    a  
+        text-decoration none
+        //rder 1px solid alpha
+        color light
+        display grid
+        grid-template-columns 1fr
+        grid-template-rows 1fr
+        //dding 1rem
+        justify-content center
+        align-items center
+        width 100%
+        height 100%
+        &:hover
+            background alpha - 20%
+            color beta
+        h3, img  
+            color beta
+            grid-column 1 / 2
+            grid-row 1 / 2
+        h3  
+            font-size 1.8em
+            //ont-weight bold
+            //order 2px solid beta
+            z-index 2
+            order 2
+    

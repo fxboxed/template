@@ -1,0 +1,89 @@
+//- views/layout.pug
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+
+    //- ---------- Defaults (override via res.locals in routes) ----------
+    - var _title    = (typeof title !== "undefined" && title) ? String(title) : "Site";
+    - var _desc     = (typeof description !== "undefined" && description) ? String(description) : "Static Node site";
+    - var _canon    = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
+    - var _siteName = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Site";
+
+    //- If you're a games-first site, "website" is a good default.
+    //- On specific pages you can set: ogType = "article" (or "website" etc.)
+    - var _ogType   = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";
+
+    //- Social image: set ogImage absolute URL per page if you have one.
+    //- Fallback to a site-level default if you provide it, otherwise blank.
+    - var _ogImage  = (typeof ogImage !== "undefined" && ogImage) ? String(ogImage) : ((typeof defaultOgImage !== "undefined" && defaultOgImage) ? String(defaultOgImage) : "");
+
+    //- Twitter: allow override, otherwise use og image
+    - var _twCard   = (typeof twitterCard !== "undefined" && twitterCard) ? String(twitterCard) : "summary_large_image";
+    - var _twImage  = (typeof twitterImage !== "undefined" && twitterImage) ? String(twitterImage) : (_ogImage || "");
+
+    //- Optional: Twitter @handles (e.g. "@yoursite"). Leave blank if not set.
+    - var _twSite   = (typeof twitterSite !== "undefined" && twitterSite) ? String(twitterSite) : "";
+    - var _twCreator= (typeof twitterCreator !== "undefined" && twitterCreator) ? String(twitterCreator) : "";
+
+    //- Optional: robots meta (e.g. "noindex, nofollow")
+    - var _robots   = (typeof robots !== "undefined" && robots) ? String(robots) : "";
+
+    //- ---------- Core SEO ----------
+    title #{_title}
+    meta(name="description" content=_desc)
+    if _robots
+      meta(name="robots" content=_robots)
+
+    //- Canonical (should be absolute)
+    if _canon
+      link(rel="canonical" href=_canon)
+
+    //- ---------- Open Graph ----------
+    meta(property="og:site_name" content=_siteName)
+    meta(property="og:title" content=_title)
+    meta(property="og:description" content=_desc)
+    meta(property="og:type" content=_ogType)
+    if _canon
+      meta(property="og:url" content=_canon)
+    if _ogImage
+      meta(property="og:image" content=_ogImage)
+
+    //- ---------- Twitter ----------
+    meta(name="twitter:card" content=_twCard)
+    meta(name="twitter:title" content=_title)
+    meta(name="twitter:description" content=_desc)
+    if _twImage
+      meta(name="twitter:image" content=_twImage)
+    if _canon
+      meta(name="twitter:url" content=_canon)
+    if _twSite
+      meta(name="twitter:site" content=_twSite)
+    if _twCreator
+      meta(name="twitter:creator" content=_twCreator)
+
+    //- Per-page extras: structured data JSON-LD, extra OG tags, preloads, etc.
+    block head
+
+    //- CSS
+    link(rel="stylesheet" href="/css/main.css")
+
+  body
+    include ./partials/contact-modal.pug
+    .burger#burger
+      span.bar
+      span.bar
+      span.bar
+
+    block cookie
+    include ./partials/header.pug
+
+    main.site-main(role="main")
+      section.container
+        block content
+
+    include ./partials/footer.pug
+
+    block scripts
+    //- script(src="/js/site.js" defer)

@@ -1,0 +1,17 @@
+//- views/mixins/responsive-grid-mixin.pug
+
+mixin responsiveGrid(minWidth, maxCols, gap = "1rem", className = "")
+  -
+    const cols = Math.max(1, Number(maxCols) || 1);
+    const mw = String(minWidth || "320px");
+    const gp = String(gap || "1rem");
+    const cap = `calc(${cols} * ${mw} + (${cols} - 1) * ${gp})`;
+
+    // Use CSS variables so your Stylus controls the actual grid rules.
+    const styleStr =
+      `--rg-min:${mw};` +
+      `--rg-gap:${gp};` +
+      `--rg-cap:${cap};`;
+
+  .responsive-grid(class=className style=styleStr)
+    block

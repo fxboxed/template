@@ -1,0 +1,126 @@
+// Always visible fixed button
+#contactToggle
+
+    background alpha - 40% // transparent //alpha + 10%
+    border none
+    //border-radius 50px
+    //box-shadow 0 4px 8px rgba(0,0,0,0.3)
+    color alpha + 80%
+    height 100%
+    cursor pointer
+    font-size 1.2rem
+    padding .6rem .8rem // 12px 18px
+    //display none
+    //position fixed
+
+#contactModal
+    align-items start //center
+    background rgba(alpha, .5)
+    border-radius 8px
+    box-shadow 0 4px 20px rgba(0, 0, 0, 0.5)
+    display flex
+    height 100vh //100% //90%
+    justify-content center
+    left 0
+    padding 4rem 1rem 2rem
+    position fixed //relative absolute
+    top 0
+    transform scale(0, 0) 
+    transition: all .3s ease-in-out //, opacity 0.3s ease-in-out
+    width 100vw //100% //90%
+    z-index 110000
+    .modal-liner
+        background alpha + 10%
+        padding 1rem
+        //border 1px solid alph, opacity 0.3s ease-in-outa + 80%
+        //background pink
+        //width 10rem
+        //height 10rem
+    form
+        background alpha + 20%
+        padding 1rem
+        h2  
+            color alpha + 80%
+            font-size 1.5rem
+            margin-bottom 1rem
+
+// Show modal
+#contactModal.show
+    opacity 1
+    transform scale(1, 1) 
+    transform-origin: top center;
+    transition: all .3s ease-in-out
+
+    //display block
+    //ransform: translateX(500px) rotate(15deg);
+    //display none
+
+.contact-text-area 
+    min-height 200px
+
+// Form elements
+#contactModal input,
+#contactModal textarea
+    background alpha +40%
+    border none 
+    border-radius 4px
+    color alpha + 90%
+    font-size 14px
+    margin-bottom 10px
+    outline none
+    padding 10px
+    width 100%
+ 
+.button-row  
+    display flex
+    gap 4rem
+    justify-content center //space-between
+    margin 0 auto
+    width fit-content
+
+#contactModal button[type=submit]
+#closeModal 
+    background alpha + 15%
+    border none
+    border-radius 4px
+    color alpha + 80%
+    cursor pointer
+    font-size 1.2rem
+    font-weight bold
+    outline none
+    padding 12px 2rem
+    border 1px solid alpha - 80%
+    //width 100%
+
+#contactModal input::placeholder,
+#contactModal textarea::placeholder
+    color alpha + 90%
+    opacity 0.7
+///////////////////////////////////
+#toastMessage
+  position absolute
+  top 1rem
+  right 1rem
+  background alpha + 20%
+  color white
+  padding 1rem 2rem
+  border-radius 6px
+  box-shadow 0 2px 10px rgba(0,0,0,0.3)
+  display flex
+  align-items center
+  gap 1rem
+  z-index 20
+
+#toastMessage.hidden
+  display none
+
+#toastClose
+  background transparent
+  border none
+  color white
+  font-size 1.5rem
+  cursor pointer
+  padding 0
+  line-height 1
+.hp-wrap
+    display none

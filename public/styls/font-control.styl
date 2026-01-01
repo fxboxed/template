@@ -1,0 +1,69 @@
+
+:root
+    --fs-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem)
+    --fs-1: clamp(1.125rem, 1.05rem + 0.6vw, 1.5rem)
+    --fs-2: clamp(1.35rem, 1.15rem + 1.2vw, 2rem)
+    --fs-3: clamp(1.7rem, 1.35rem + 2vw, 2.75rem)
+    --fs-4: clamp(2.1rem, 1.6rem + 3vw, 3.5rem)
+    --fs--1: clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem)
+    --lh-body: 1.6
+    --lh-head: 1.15
+    --measure: 68ch
+
+html
+    font-size 100%
+    -webkit-text-size-adjust 100%
+    text-size-adjust 100%
+
+h1, h2, h3, h4, h5, h6
+    line-height var(--lh-head)
+    margin 0 0 0.5em 0
+    font-weight 700
+    letter-spacing -0.01em
+
+h1
+    font-size var(--fs-4)
+    color alpha 
+
+h2
+    font-size var(--fs-3)
+
+h3
+    font-size var(--fs-2)
+
+h4
+    font-size var(--fs-1)
+
+h5
+    font-size clamp(1.05rem, 1rem + 0.4vw, 1.25rem)
+
+h6
+    font-size clamp(1rem, 0.98rem + 0.25vw, 1.125rem)
+
+p, li
+    font-size var(--fs-0)
+    line-height var(--lh-body)
+
+p
+    margin 0 0 1em 0
+    max-width var(--measure)
+
+ul, ol
+    margin 0 0 1em 0
+    padding-left 1.25em
+    max-width var(--measure)
+
+li
+    margin 0.35em 0
+
+a
+    font-size inherit
+    line-height inherit
+    text-decoration-thickness 0.08em
+    text-underline-offset 0.18em
+    &:hover
+        text-decoration-thickness 0.12em
+
+.small, small
+    font-size var(--fs--1)
+    line-height 1.5
