@@ -1,5 +1,5 @@
 {
-  "name": "static-node-site",
+  "name": "template",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -10,14 +10,17 @@
     "start": "NODE_ENV=production node app.js",
     "pm2": "NODE_ENV=production pm2 start app.js --name static-site --time",
     "pm2:reload": "pm2 reload static-site --update-env",
-    "pm2:logs": "pm2 logs static-site",
+    "pm2:logs": "pm2 logs template",
     "pm2:save": "pm2 save",
     "stylus": "stylus  -w public/styls/main.styl -c -o public/css/main.css"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
+    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-session": "^1.17.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "pug": "^3.0.3"
   },
   "devDependencies": {

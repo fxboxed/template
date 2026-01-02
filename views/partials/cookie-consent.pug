@@ -1,0 +1,25 @@
+//- views/partials/cookie-consent.pug
+
+//- Bar (Accept/Reject/Manage)
+.cconsent(data-consent="bar" hidden)
+  .cconsent__inner
+    .cconsent__text
+      strong Cookies 🍪
+      p
+        | We use essential cookies to keep you signed in and make the site work.
+        | With your permission, we also use Google Analytics to improve the games.
+    .cconsent__actions
+      button.cconsent__btn(type="button" data-cc="accept") Accept analytics
+      button.cconsent__btn.cconsent__btn--ghost(type="button" data-cc="reject") Reject
+      button.cconsent__btn.cconsent__btn--ghost(type="button" data-cc="manage") Manage
+
+//- Panel (Save/Close)
+.cconsent-panel(data-consent="panel" hidden)
+  .cconsent-panel__inner
+    h3 Cookie settings
+    label.cconsent-panel__row
+      input(type="checkbox" data-cc-field="analytics")
+      span Allow Google Analytics (optional)
+    .cconsent-panel__actions
+      button.cconsent__btn(type="button" data-cc="save") Save settings
+      button.cconsent__btn.cconsent__btn--ghost(type="button" data-cc="close") Close

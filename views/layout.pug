@@ -10,33 +10,22 @@ html(lang="en")
     - var _desc     = (typeof description !== "undefined" && description) ? String(description) : "Static Node site";
     - var _canon    = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
     - var _siteName = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Site";
-
-    //- If you're a games-first site, "website" is a good default.
-    //- On specific pages you can set: ogType = "article" (or "website" etc.)
     - var _ogType   = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";
-
-    //- Social image: set ogImage absolute URL per page if you have one.
-    //- Fallback to a site-level default if you provide it, otherwise blank.
     - var _ogImage  = (typeof ogImage !== "undefined" && ogImage) ? String(ogImage) : ((typeof defaultOgImage !== "undefined" && defaultOgImage) ? String(defaultOgImage) : "");
-
-    //- Twitter: allow override, otherwise use og image
     - var _twCard   = (typeof twitterCard !== "undefined" && twitterCard) ? String(twitterCard) : "summary_large_image";
     - var _twImage  = (typeof twitterImage !== "undefined" && twitterImage) ? String(twitterImage) : (_ogImage || "");
-
-    //- Optional: Twitter @handles (e.g. "@yoursite"). Leave blank if not set.
     - var _twSite   = (typeof twitterSite !== "undefined" && twitterSite) ? String(twitterSite) : "";
     - var _twCreator= (typeof twitterCreator !== "undefined" && twitterCreator) ? String(twitterCreator) : "";
-
-    //- Optional: robots meta (e.g. "noindex, nofollow")
     - var _robots   = (typeof robots !== "undefined" && robots) ? String(robots) : "";
+    - var _gaId     = (typeof gaId !== "undefined" && gaId) ? String(gaId) : "";
 
     //- ---------- Core SEO ----------
     title #{_title}
     meta(name="description" content=_desc)
+    meta(name="referrer" content="strict-origin-when-cross-origin")
     if _robots
       meta(name="robots" content=_robots)
 
-    //- Canonical (should be absolute)
     if _canon
       link(rel="canonical" href=_canon)
 
@@ -63,20 +52,39 @@ html(lang="en")
     if _twCreator
       meta(name="twitter:creator" content=_twCreator)
 
-    //- Per-page extras: structured data JSON-LD, extra OG tags, preloads, etc.
+    //- ---------- Google Analytics (Consent Mode stub only) ----------
+    //- Do NOT load GA here. Only set default consent to denied.
+    if _gaId
+      script.
+        window.__GA_MEASUREMENT_ID__ = "#{_gaId}";
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent','default',{
+          analytics_storage:'denied',
+          ad_storage:'denied',
+          ad_user_data:'denied',
+          ad_personalization:'denied'
+        });
+
+    //- Per-page extras
     block head
 
-    //- CSS
     link(rel="stylesheet" href="/css/main.css")
 
   body
     include ./partials/contact-modal.pug
+
     .burger#burger
       span.bar
       span.bar
       span.bar
 
+    //- ✅ Cookie consent UI included ONCE (not in an overridable block)
+    include ./partials/cookie-consent.pug
+
+    //- Optional hook for future cookie-related extras (leave empty for now)
     block cookie
+
     include ./partials/header.pug
 
     main.site-main(role="main")
@@ -85,5 +93,11 @@ html(lang="en")
 
     include ./partials/footer.pug
 
+    //- ✅ Core scripts always loaded (cannot be overridden by child templates)
+script(src="/js/aptati-consent.js" defer)
+
+    script(src="/js/nav-toggle.js" defer)
+    script(src="/js/contact-modal.js" defer)
+
+    //- Page-specific scripts (child templates can add with "append scripts")
     block scripts
-    //- script(src="/js/site.js" defer)

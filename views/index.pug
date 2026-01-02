@@ -4,7 +4,7 @@ include ./mixins/responsive-grid-mixin.pug
 //- Optional homepage-only head additions.
 //- Best practice is to set title/description/canonical/ogImage in your route locals,
 //- but this provides a safe OG image fallback if you haven't wired ogImage/defaultOgImage yet.
-block head
+
   - var _hasOg = ((typeof ogImage !== "undefined" && ogImage) || (typeof defaultOgImage !== "undefined" && defaultOgImage)) ? true : false;
   - var _canon = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
   - var _origin = "";

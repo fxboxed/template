@@ -1,0 +1,15 @@
+extends ../layout.pug
+block head
+
+block content
+  h1 Dashboard
+
+  if user
+    p Logged in as #{user.displayName || user.email || "Member"}
+    if user.photo
+      img(src=user.photo alt="Profile photo" width="64" height="64")
+  else
+    p Logged in.
+
+  form(method="post" action="/logout")
+    button(type="submit") Logout

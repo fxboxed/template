@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "public/css/*",
+    "public/js/*",
+    "public/images/*",
+    "public/styls/*"
+  ]
+}
