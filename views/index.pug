@@ -17,6 +17,7 @@ include ./mixins/responsive-grid-mixin.pug
     meta(name="twitter:image" content=_homeOgAbs)
 
 block content
+
   +responsiveGrid("380px", 3, "1rem", "grid-item grid-item-card-link")
     a(href="/games/game1") 
       h3 Game 1

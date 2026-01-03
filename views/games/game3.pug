@@ -3,7 +3,6 @@ extends ../layout.pug
 block head
 
 block content
-  h1 Dashboard
 
   if user
     - var display = user.displayName || user.email || "Member";
@@ -21,8 +20,9 @@ block content
   else
     p You’re logged in, but no user record is loaded yet.
 
-  hr
+    hr
 
 
+    include ../partials/inner-nav.pug
   form(method="post" action="/logout")
     button(type="submit") Logout

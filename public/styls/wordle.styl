@@ -1,0 +1,299 @@
+// public/styls/wordle.styl
+// Wordle / Game 1 styles (Stylus-safe indentation, no broken rgba, no missing imports)
+
+.game--wordle
+  --maxW: 56rem
+  --pad: clamp(12px, 2.2vw, 22px)
+  --gap: clamp(8px, 1.6vw, 14px)
+
+  --tile: clamp(44px, 8.8vw, 64px)
+  --tileGap: clamp(6px, 1.1vw, 10px)
+  --radius: 12px
+
+  --keyH: clamp(40px, 7.5vw, 54px)
+  --keyGap: clamp(6px, 1.1vw, 10px)
+
+  // Light defaults
+  --panelBg: rgba(0, 0, 0, 0.03)
+  --panelBorder: rgba(0, 0, 0, 0.10)
+
+  --tileBg: rgba(0, 0, 0, 0.03)
+  --tileBorder: rgba(0, 0, 0, 0.18)
+
+  --mutedBg: rgba(0, 0, 0, 0.10)
+  --mutedBorder: rgba(0, 0, 0, 0.12)
+
+  // Wordle-ish colors
+  --presentBg: rgba(255, 200, 0, 0.55)
+  --presentBorder: rgba(255, 200, 0, 0.75)
+
+  --correctBg: rgba(0, 180, 90, 0.55)
+  --correctBorder: rgba(0, 180, 90, 0.75)
+
+  --fg: rgba(0, 0, 0, 0.92)
+
+  width: 100%
+  padding: var(--pad)
+  margin: 0 auto
+  max-width: var(--maxW)
+
+  background: var(--panelBg)
+  border: 1px solid var(--panelBorder)
+  border-radius: 18px
+
+  color: var(--fg)
+
+@media (prefers-color-scheme: dark)
+  .game--wordle
+    --panelBg: rgba(255, 255, 255, 0.04)
+    --panelBorder: rgba(255, 255, 255, 0.10)
+
+    --tileBg: rgba(255, 255, 255, 0.06)
+    --tileBorder: rgba(255, 255, 255, 0.16)
+
+    --mutedBg: rgba(255, 255, 255, 0.16)
+    --mutedBorder: rgba(255, 255, 255, 0.18)
+
+    --presentBg: rgba(255, 200, 0, 0.42)
+    --presentBorder: rgba(255, 200, 0, 0.55)
+
+    --correctBg: rgba(0, 200, 110, 0.42)
+    --correctBorder: rgba(0, 200, 110, 0.55)
+
+    --fg: rgba(255, 255, 255, 0.92)
+
+.game__header
+  display: grid
+  gap: 8px
+  align-items: start
+
+.game__title
+  font-size: clamp(22px, 3.2vw, 34px)
+  line-height: 1.1
+  margin: 0
+
+.game__sub
+  margin: 0
+  font-size: clamp(13px, 1.8vw, 16px)
+  opacity: 0.9
+
+.game__countdown
+  font-variant-numeric: tabular-nums
+  margin-left: 8px
+  padding: 2px 10px
+  border-radius: 999px
+  background: var(--mutedBg)
+  border: 1px solid var(--mutedBorder)
+
+.game__streak
+  margin: 0
+  font-size: clamp(13px, 1.8vw, 16px)
+  opacity: 0.9
+
+.game__stage
+  margin-top: 14px
+
+.wordle
+  display: grid
+  gap: var(--gap)
+  justify-items: center
+
+.wordle__board
+  display: grid
+  gap: var(--tileGap)
+  justify-content: center
+  width: 100%
+
+.wordle__row
+  display: grid
+  grid-template-columns: repeat(5, var(--tile))
+  gap: var(--tileGap)
+  justify-content: center
+
+.wordle__tile
+  width: var(--tile)
+  height: var(--tile)
+  border-radius: var(--radius)
+  display: grid
+  place-items: center
+  font-weight: 800
+  font-size: clamp(18px, 3.2vw, 28px)
+  letter-spacing: 0.02em
+  user-select: none
+  background: var(--tileBg)
+  border: 1px solid var(--tileBorder)
+  color: var(--fg)
+  transform-style: preserve-3d
+
+.wordle__tile[data-state="absent"]
+  background: var(--mutedBg)
+  border-color: var(--mutedBorder)
+
+.wordle__tile[data-state="present"]
+  background: var(--presentBg)
+  border-color: var(--presentBorder)
+
+.wordle__tile[data-state="correct"]
+  background: var(--correctBg)
+  border-color: var(--correctBorder)
+
+// Keyboard
+.wordle__keyboard
+  width: min(100%, 40rem)
+  display: grid
+  gap: var(--keyGap)
+
+.kb__row
+  display: flex
+  gap: var(--keyGap)
+  justify-content: center
+  flex-wrap: nowrap
+
+.kb__key
+  height: var(--keyH)
+  min-width: 0
+  flex: 1 1 0
+  border-radius: 12px
+  border: 1px solid var(--tileBorder)
+  background: var(--tileBg)
+  color: var(--fg)
+  font-weight: 750
+  font-size: clamp(12px, 1.6vw, 16px)
+  line-height: 1
+  padding: 0 6px
+  user-select: none
+  touch-action: manipulation
+  cursor: pointer
+
+.kb__key--wide
+  flex: 1.45 1 0
+  font-size: clamp(12px, 1.5vw, 15px)
+
+.kb__key[data-state="absent"]
+  background: var(--mutedBg)
+  border-color: var(--mutedBorder)
+
+.kb__key[data-state="present"]
+  background: var(--presentBg)
+  border-color: var(--presentBorder)
+
+.kb__key[data-state="correct"]
+  background: var(--correctBg)
+  border-color: var(--correctBorder)
+
+// Footer / Share
+.game__footer
+  margin-top: 14px
+  display: grid
+  gap: 10px
+
+.game__actions
+  display: flex
+  gap: 10px
+  flex-wrap: wrap
+  justify-content: center
+
+.btn
+  border-radius: 999px
+  padding: 10px 14px
+  border: 1px solid var(--tileBorder)
+  background: var(--tileBg)
+  color: var(--fg)
+  font-weight: 700
+  cursor: pointer
+  touch-action: manipulation
+
+.btn--ghost
+  background: transparent
+
+.game__toast
+  margin: 0
+  text-align: center
+  min-height: 1.2em
+  opacity: 0.9
+  color: var(--fg)
+
+.share
+  width: 100%
+  max-width: 40rem
+  margin: 0 auto
+  padding: 12px
+  border-radius: 16px
+  border: 1px solid var(--panelBorder)
+  background: var(--panelBg)
+
+.share__title
+  margin: 0 0 8px 0
+  font-size: clamp(15px, 2vw, 18px)
+
+.share__text
+  margin: 0
+  padding: 10px
+  border-radius: 12px
+  background: var(--tileBg)
+  border: 1px solid var(--tileBorder)
+  overflow-x: auto
+  font-size: 14px
+  line-height: 1.25
+  font-variant-numeric: tabular-nums
+  color: var(--fg)
+
+.share__actions
+  display: flex
+  gap: 10px
+  flex-wrap: wrap
+  justify-content: center
+  margin-top: 10px
+
+// Animations (Stylus indentation MUST be correct)
+@keyframes wordleShake
+  0%
+    transform: translateX(0)
+  20%
+    transform: translateX(-8px)
+  40%
+    transform: translateX(8px)
+  60%
+    transform: translateX(-6px)
+  80%
+    transform: translateX(6px)
+  100%
+    transform: translateX(0)
+
+.wordle__row.is-shake
+  animation: wordleShake 0.42s ease-in-out
+
+@keyframes wordleFlip
+  0%
+    transform: rotateX(0deg)
+  49%
+    transform: rotateX(90deg)
+  50%
+    transform: rotateX(90deg)
+  100%
+    transform: rotateX(0deg)
+
+.wordle__row.is-revealing .wordle__tile
+  animation: wordleFlip 0.52s ease-in-out
+  animation-delay: calc(var(--i) * 0.09s)
+
+// Disable keyboard once finished
+.game--wordle[data-status="won"] #wordle-keyboard,
+.game--wordle[data-status="lost"] #wordle-keyboard
+  pointer-events: none
+  opacity: 0.88
+
+@media (max-width: 360px)
+  .game--wordle
+    --tile: clamp(40px, 10.5vw, 56px)
+    --keyH: clamp(38px, 8.5vw, 50px)
+
+  .kb__key--wide
+    flex: 1.6 1 0
+
+@media (min-width: 1024px)
+  .wordle
+    gap: 16px
+
+  .wordle__keyboard
+    width: min(100%, 42rem)

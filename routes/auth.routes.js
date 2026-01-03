@@ -5,6 +5,17 @@ import { pageMeta } from "../utils/page-meta.js";
 
 const router = Router();
 
+function safeUser(u) {
+  if (!u) return null;
+  return {
+    id: u._id ? String(u._id) : "",
+    googleId: u.googleId || "",
+    displayName: u.displayName || "",
+    email: u.email || "",
+    photo: u.photo || "",
+  };
+}
+
 router.get("/login", (req, res) => {
   if (req.session?.userId || (typeof req.isAuthenticated === "function" && req.isAuthenticated())) {
     return res.redirect("/dashboard");
@@ -37,11 +48,11 @@ router.get(
     session: true,
   }),
   (req, res, next) => {
-    // ✅ Ensure our own session markers are set
-    req.session.userId = req.user?.id;
-    req.session.user = req.user;
+    // ✅ Our own session markers (Mongo user)
+    req.session.userId = req.user?._id ? String(req.user._id) : "";
+    req.session.user = safeUser(req.user);
 
-    // ✅ Critical: force session save before redirect (prevents “logged out after redirect/navigation”)
+    // ✅ Force session save before redirect
     req.session.save((err) => {
       if (err) return next(err);
       return res.redirect("/dashboard");
@@ -68,3 +79,4 @@ router.post("/logout", (req, res, next) => {
 });
 
 export default router;
+

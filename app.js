@@ -1,7 +1,6 @@
-// app.js
+// app.js (ESM)
 
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 
 import express from "express";
 import path from "path";
@@ -19,6 +18,16 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 
 import { pageMeta } from "./utils/page-meta.js";
 
+// Mongo
+import { connectDB, mongoStatus } from "./utils/db.js";
+import User from "./models/User.js";
+
+// Game 1 (Wordle)
+import wordleApi from "./routes/api/wordle.js";
+import { getDayKeyUTC } from "./server/games/wordle/puzzle.js";
+
+const app = express();
+
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || "").trim();
 const GOOGLE_CLIENT_SECRET = String(process.env.GOOGLE_CLIENT_SECRET || "").trim();
 
@@ -27,15 +36,11 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   process.exit(1);
 }
 
-const app = express();
-
 // ---- basics
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const isProd = process.env.NODE_ENV === "production";
-
-// Trust proxy only in production (behind Cloudflare/Nginx)
 if (isProd) app.set("trust proxy", 1);
 
 app.set("view engine", "pug");
@@ -45,6 +50,11 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// ✅ API mounts (game1 primary, wordle alias)
+// Client should use /api/games/game1/guess, but alias keeps old code from breaking.
+app.use("/api/games/game1", wordleApi);
+app.use("/api/games/wordle", wordleApi);
 
 // ---- session cookie
 app.use(
@@ -66,11 +76,28 @@ app.use(
 
 // ---- Passport: Google OAuth
 const PORT = Number(process.env.PORT || 4000);
-const baseUrl = String(process.env.BASE_URL || `http://localhost:${PORT}`).trim().replace(/\/+$/, "");
+const baseUrl = String(process.env.BASE_URL || `http://localhost:${PORT}`)
+  .trim()
+  .replace(/\/+$/, "");
 
-// Minimal passport session serialization (good for local dev)
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+// Store only Mongo user id in session
+passport.serializeUser((user, done) => {
+  try {
+    return done(null, user?._id?.toString());
+  } catch (e) {
+    return done(e);
+  }
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    if (!id) return done(null, null);
+    const user = await User.findById(id).lean();
+    return done(null, user || null);
+  } catch (e) {
+    return done(e);
+  }
+});
 
 passport.use(
   new GoogleStrategy(
@@ -79,18 +106,47 @@ passport.use(
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: `${baseUrl}/auth/google/callback`,
     },
-    (accessToken, refreshToken, profile, done) => {
-      const email = profile?.emails?.[0]?.value || "";
-      const photo = profile?.photos?.[0]?.value || "";
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        const googleId = String(profile?.id || "").trim();
+        if (!googleId) return done(new Error("Missing Google profile id"));
 
-      const user = {
-        id: profile.id,
-        displayName: profile.displayName || "",
-        email,
-        photo,
-      };
+        const email = profile?.emails?.[0]?.value || "";
+        const photo = profile?.photos?.[0]?.value || "";
+        const displayName = profile?.displayName || "";
 
-      return done(null, user);
+        let user = await User.findOne({ googleId });
+
+        if (!user) {
+          user = await User.create({
+            googleId,
+            email,
+            photo,
+            displayName,
+            createdAt: new Date(),
+            lastLoginAt: new Date(),
+          });
+        } else {
+          user.email = email || user.email;
+          user.photo = photo || user.photo;
+          user.displayName = displayName || user.displayName;
+          user.lastLoginAt = new Date();
+          await user.save();
+        }
+
+        return done(null, user);
+      } catch (err) {
+        if (err && err.code === 11000) {
+          try {
+            const googleId = String(profile?.id || "").trim();
+            const user = await User.findOne({ googleId });
+            return done(null, user || null);
+          } catch (e2) {
+            return done(e2);
+          }
+        }
+        return done(err);
+      }
     }
   )
 );
@@ -105,12 +161,31 @@ app.use((req, res, next) => {
     (typeof req.isAuthenticated === "function" && req.isAuthenticated());
 
   res.locals.isAuthed = authed;
-  res.locals.user = req.session?.user || req.user || null;
-
-  // ✅ Google Analytics Measurement ID (GA4). Leave blank to disable.
+  res.locals.user = req.user || null;
   res.locals.gaId = String(process.env.GA_MEASUREMENT_ID || "").trim();
 
   next();
+});
+
+// Debug: who am I?
+app.get("/me", (req, res) => {
+  const authed = typeof req.isAuthenticated === "function" && req.isAuthenticated();
+  return res.json({
+    authed,
+    sessionUserId: req.session?.userId || null,
+    user: req.user || null,
+  });
+});
+
+// health: db
+app.get("/health/db", (req, res) => {
+  const state = mongoStatus();
+  const map = ["disconnected", "connected", "connecting", "disconnecting"];
+  return res.status(state === 1 ? 200 : 503).json({
+    ok: state === 1,
+    mongoReadyState: state,
+    mongoState: map[state] || "unknown",
+  });
 });
 
 // ---- routes
@@ -126,6 +201,27 @@ app.get("/", (req, res) => {
   );
 });
 
+// ✅ Game 1 page (Wordle)
+app.get("/games/game1", (req, res) => {
+  const dayKey = getDayKeyUTC(new Date());
+  return res.render(
+    "games/game1",
+    pageMeta(
+      req,
+      {
+        title: "Game 1",
+        description: "Daily global word puzzle (UTC).",
+        path: "/games/game1",
+        ogType: "website",
+      },
+      { dayKey }
+    )
+  );
+});
+
+// Alias: old route still works
+app.get("/games/wordle", (req, res) => res.redirect(302, "/games/game1"));
+
 app.use("/", authRoutes);
 app.use("/", dashboardRoutes);
 
@@ -134,33 +230,56 @@ app.use("/", staticRoutes);
 
 // ---- 404
 app.use((req, res) => {
-  return res.status(404).render("404", {
-    ...pageMeta(req, {
-      title: "404",
-      description: "Page not found.",
-      path: req.originalUrl || "/",
-      ogType: "website",
-      robots: "noindex, nofollow",
-    }),
-    url: req.originalUrl,
-  });
+  return res.status(404).render(
+    "404",
+    pageMeta(
+      req,
+      {
+        title: "404",
+        description: "Page not found.",
+        path: req.originalUrl || "/",
+        ogType: "website",
+        robots: "noindex, nofollow",
+      },
+      { url: req.originalUrl }
+    )
+  );
 });
 
 // ---- error handler
 app.use((err, req, res, next) => {
   console.error(err);
-  return res.status(500).render("500", {
-    ...pageMeta(req, {
-      title: "Server error",
-      description: "Something broke.",
-      path: req.originalUrl || "/",
-      ogType: "website",
-      robots: "noindex, nofollow",
-    }),
-    message: isProd ? "Something broke." : err.message,
-  });
+  return res.status(500).render(
+    "500",
+    pageMeta(
+      req,
+      {
+        title: "Server error",
+        description: "Something broke.",
+        path: req.originalUrl || "/",
+        ogType: "website",
+        robots: "noindex, nofollow",
+      },
+      { message: isProd ? "Something broke." : err.message }
+    )
+  );
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ aptati running on http://localhost:${PORT}`);
-});
+// ---- start
+async function start() {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("❌ Failed to connect to MongoDB:", err.message);
+    if (isProd) process.exit(1);
+  }
+
+  // bind to all interfaces (helps Docker/WSL too)
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ aptati running on http://localhost:${PORT}`);
+  });
+}
+
+start();
+
+export default app;
