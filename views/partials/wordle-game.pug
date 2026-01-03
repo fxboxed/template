@@ -22,6 +22,12 @@ mixin wordleGame(opts)
         | Daily global puzzle (UTC). Next puzzle in
         span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00
 
+      //- ✅ Attempts indicator
+      p#wordle-attemptsLine.game__attempts(aria-live="polite")
+        | Attempt:
+        span#wordle-attempts 1/6
+
+      //- ✅ Streak indicator
       p#wordle-streak.game__streak(aria-live="polite") Streak: 0
 
       if premiumEnabled
@@ -35,7 +41,6 @@ mixin wordleGame(opts)
 
     section.game__stage
       .wordle
-        //- Board (6 attempts x 5 letters)
         .wordle__board#wordle-board(role="grid" aria-label="Word grid")
           - const rows = 6
           - const cols = 5
@@ -51,7 +56,6 @@ mixin wordleGame(opts)
                   style=`--i:${c}`
                 )
 
-        //- On-screen keyboard
         .wordle__keyboard#wordle-keyboard(aria-label="Keyboard")
           .kb__row
             each k in ['Q','W','E','R','T','Y','U','I','O','P']

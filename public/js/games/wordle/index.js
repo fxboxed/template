@@ -1,6 +1,13 @@
 // public/js/games/wordle/index.js (ESM)
-// Stable version: no staged reveal timers, no input lock, safe storage wrapper.
-// Colors apply immediately. Flip animation is cosmetic only.
+// Fixes:
+// - Supports server result formats: strings OR numbers (2/1/0) OR objects ({state:"present"})
+// - Prevents double-submit (Enter repeat + fast clicks)
+// - Keeps attempts + streak UI updated
+// - Uses your actual API route: /api/games/game1/guess  :contentReference[oaicite:4]{index=4}
+
+const CLIENT_VERSION = "2026-01-03.v3";
+window.__WORDLE_CLIENT_VERSION__ = CLIENT_VERSION;
+console.log(`[Wordle] client ${CLIENT_VERSION} loaded`);
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -12,37 +19,21 @@ const STATE_RANK = { empty: 0, absent: 1, present: 2, correct: 3 };
 const EMOJI = { absent: "⬛", present: "🟨", correct: "🟩" };
 
 const SHAKE_MS = 420;
-const FLIP_MS = 520; // cosmetic flip duration (should match CSS)
+const FLIP_MS = 520;
 
 const storage = {
   get(key) {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
-    }
+    try { return localStorage.getItem(key); } catch { return null; }
   },
   set(key, value) {
-    try {
-      localStorage.setItem(key, value);
-      return true;
-    } catch {
-      return false;
-    }
+    try { localStorage.setItem(key, value); return true; } catch { return false; }
   },
   remove(key) {
-    try {
-      localStorage.removeItem(key);
-      return true;
-    } catch {
-      return false;
-    }
+    try { localStorage.removeItem(key); return true; } catch { return false; }
   },
 };
 
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
+function pad2(n) { return String(n).padStart(2, "0"); }
 
 function formatHMS(ms) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -71,6 +62,8 @@ function setShareOpen(open) {
 
 function readGameDataset() {
   const root = $(".game--wordle");
+  if (root) root.dataset.clientVersion = CLIENT_VERSION;
+
   return {
     root,
     dayKey: root?.dataset.dayKey || "",
@@ -91,11 +84,7 @@ function statsStorageKey() {
 }
 
 function safeJsonParse(raw, fallback) {
-  try {
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
+  try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
 }
 
 function loadState(puzId) {
@@ -151,6 +140,66 @@ function setKeyState(letter, state) {
   btn.dataset.state = rankUpgrade(old, state);
 }
 
+// ✅ Handles result elements that are:
+// - strings: "correct"/"present"/"absent"/"misplaced"/"partial"...
+// - numbers: 2/1/0 (or 3/2/1 style)
+// - objects: {state:"present"} or {status:"correct"} etc.
+function normalizeState(x) {
+  // numbers (common: 2 correct, 1 present, 0 absent)
+  if (typeof x === "number") {
+    if (x >= 2) return "correct";
+    if (x === 1) return "present";
+    return "absent";
+  }
+
+  // objects: try common property names
+  if (x && typeof x === "object") {
+    const cand =
+      x.state ?? x.status ?? x.result ?? x.kind ?? x.color ?? x.label ?? x.value;
+    return normalizeState(cand);
+  }
+
+  const v = String(x ?? "").toLowerCase().trim();
+
+  if (!v || v === "empty") return "empty";
+
+  // correct (green)
+  if (["correct", "hit", "right", "green", "match", "exact", "c"].includes(v)) return "correct";
+
+  // present (yellow) — include more synonyms
+  if (
+    [
+      "present",
+      "misplaced",
+      "partial",
+      "inword",
+      "in_word",
+      "exists",
+      "elsewhere",
+      "wrongpos",
+      "wrong_position",
+      "wrong-position",
+      "near",
+      "yellow",
+      "p",
+    ].includes(v)
+  ) {
+    return "present";
+  }
+
+  // absent (grey)
+  if (["absent", "miss", "none", "no", "gray", "grey", "a"].includes(v)) return "absent";
+
+  return "absent";
+}
+
+function normalizeResultArray(arr) {
+  const out = Array.from({ length: WORD_LEN }, () => "absent");
+  if (!Array.isArray(arr)) return out;
+  for (let i = 0; i < WORD_LEN; i++) out[i] = normalizeState(arr[i]);
+  return out;
+}
+
 function computeShareText({ dayKey, idx, attemptsUsed, gridStates }) {
   const score = attemptsUsed != null ? `${attemptsUsed}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`;
   const header = `Game 1 (aptati) ${dayKey} #${idx} ${score}`;
@@ -200,23 +249,43 @@ function initWordle() {
     idx,
     guesses: [], // [{ word, result }]
     current: "",
-    status: "playing", // "playing" | "won" | "lost"
-    keyboard: {}, // { A: state }
+    status: "playing",
+    keyboard: {},
   };
 
   const st = loadState(puzId) || defaultState;
+
+  // normalize any stored results (back-compat)
+  if (Array.isArray(st.guesses)) {
+    for (const g of st.guesses) {
+      if (g && Array.isArray(g.result)) g.result = normalizeResultArray(g.result);
+    }
+  }
+
+  let isSubmitting = false;
 
   function setStatus(status) {
     st.status = status;
     root.dataset.status = status;
   }
 
+  function renderAttempts() {
+    const el = $("#wordle-attempts");
+    if (!el) return;
+
+    const attemptNum =
+      st.status === "playing"
+        ? Math.min(st.guesses.length + 1, MAX_ATTEMPTS)
+        : Math.min(st.guesses.length, MAX_ATTEMPTS);
+
+    el.textContent = `${attemptNum}/${MAX_ATTEMPTS}`;
+  }
+
   function renderStreak() {
     const stats = loadStats();
     const el = $("#wordle-streak");
     if (!el) return;
-    const s = Number(stats.streak || 0);
-    el.textContent = `Streak: ${s}`;
+    el.textContent = `Streak: ${Number(stats.streak || 0)}`;
   }
 
   function renderBoard() {
@@ -225,7 +294,9 @@ function initWordle() {
 
       for (let c = 0; c < WORD_LEN; c++) {
         if (committed) {
-          setTile(r, c, committed.word[c].toUpperCase(), committed.result[c]);
+          const letter = committed.word?.[c]?.toUpperCase?.() || "";
+          const state = committed.result?.[c] || "absent";
+          setTile(r, c, letter, state);
         } else if (r === st.guesses.length && st.status === "playing") {
           const ch = st.current[c] ? st.current[c].toUpperCase() : "";
           setTile(r, c, ch, "empty");
@@ -247,8 +318,10 @@ function initWordle() {
       if (el) el.textContent = "";
       return;
     }
+
     const gridStates = st.guesses.map((g) => g.result);
     const attemptsUsed = st.status === "won" ? st.guesses.length : null;
+
     $("#wordle-shareText").textContent = computeShareText({
       dayKey: st.dayKey,
       idx: st.idx,
@@ -261,6 +334,7 @@ function initWordle() {
     renderBoard();
     renderKeyboard();
     renderShareText();
+    renderAttempts();
     renderStreak();
     root.dataset.status = st.status;
   }
@@ -339,6 +413,7 @@ function initWordle() {
   }
 
   async function submitGuess() {
+    if (isSubmitting) return; // stop double-submits
     if (st.status !== "playing") return;
 
     const guess = st.current.toLowerCase();
@@ -352,51 +427,55 @@ function initWordle() {
 
     if (st.guesses.length >= MAX_ATTEMPTS) return;
 
+    isSubmitting = true;
+    root.dataset.submitting = "1";
     toast("");
 
-    let data;
     try {
-      data = await apiGuess({ dayKey: st.dayKey, idx: st.idx, guess });
+      const data = await apiGuess({ dayKey: st.dayKey, idx: st.idx, guess });
+
+      if (!data.ok) {
+        // show server dayKey if mismatch (helps when testing around UTC midnight)
+        const extra = data.serverDayKey ? ` (server: ${data.serverDayKey})` : "";
+        toast(data.reason === "locked_v1_today_idx0" ? `Daily locked${extra}` : "Server error.");
+        shakeRow(activeRow);
+        return;
+      }
+
+      if (!data.valid) {
+        toast(data.reason === "not_in_word_list" ? "Not in word list." : "Invalid guess.");
+        shakeRow(activeRow);
+        return;
+      }
+
+      const normalized = normalizeResultArray(data.result);
+
+      st.guesses.push({ word: guess, result: normalized });
+      updateKeyboardFromResult(guess, normalized);
+      st.current = "";
+
+      persist();
+      render();
+      flipRow(activeRow);
+
+      if (data.isSolved) {
+        markWon();
+        persist();
+        render();
+        return;
+      }
+
+      if (st.guesses.length >= MAX_ATTEMPTS) {
+        markLost();
+        persist();
+        render();
+      }
     } catch {
       toast("Network error.");
       shakeRow(activeRow);
-      return;
-    }
-
-    if (!data.ok) {
-      toast(data.reason === "locked_v1_today_idx0" ? "Today’s daily only (v1)." : "Server error.");
-      shakeRow(activeRow);
-      return;
-    }
-
-    if (!data.valid) {
-      toast(data.reason === "not_in_word_list" ? "Not in word list." : "Invalid guess.");
-      shakeRow(activeRow);
-      return;
-    }
-
-    // Commit immediately (no staged reveal)
-    st.guesses.push({ word: guess, result: data.result });
-    updateKeyboardFromResult(guess, data.result);
-    st.current = "";
-
-    persist();
-    render();
-
-    // Cosmetic flip on reveal
-    flipRow(activeRow);
-
-    if (data.isSolved) {
-      markWon();
-      persist();
-      render();
-      return;
-    }
-
-    if (st.guesses.length >= MAX_ATTEMPTS) {
-      markLost();
-      persist();
-      render();
+    } finally {
+      isSubmitting = false;
+      delete root.dataset.submitting;
     }
   }
 
@@ -411,6 +490,10 @@ function initWordle() {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 
     const k = e.key;
+
+    // prevent holding Enter from firing repeatedly
+    if (k === "Enter" && e.repeat) return;
+
     if (k === "Enter" || k === "Backspace") {
       e.preventDefault();
       handleKey(k);
@@ -423,6 +506,8 @@ function initWordle() {
   $("#wordle-keyboard")?.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-key]");
     if (!btn) return;
+    // stop spamming Enter while a request is in flight
+    if (btn.dataset.key === "Enter" && isSubmitting) return;
     handleKey(btn.dataset.key);
   });
 
@@ -452,7 +537,6 @@ function initWordle() {
     }
   });
 
-  // Reset local only
   $("#wordle-resetBtn")?.addEventListener("click", () => {
     storage.remove(stateStorageKey(puzId));
     location.reload();
