@@ -1,9 +1,9 @@
-extends ../layout.pug
-block head
+//- views/games/game1.pug
+extends ../layout
 
 block content
-  .page
-      h1 [Page 1]
-      p This is the content for [Page 1].
-      .game-wrap 
-        //- Game content would go here
+  include ../partials/wordle-game
+  +wordleGame({ gameKey: 'wordle', idx: 0, maxIdx: 49, premiumEnabled: false, dayKey: dayKey })
+
+block scripts
+  script(type="module" src="/js/games/wordle/index.js" defer)

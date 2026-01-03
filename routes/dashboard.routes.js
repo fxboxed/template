@@ -6,21 +6,19 @@ import { pageMeta } from "../utils/page-meta.js";
 const router = Router();
 
 router.get("/dashboard", requireAuth, (req, res) => {
-  const user = req.session?.user || req.user || null;
+  // Prefer Mongo user loaded via passport.deserializeUser()
+  const user = req.user || req.session?.user || null;
 
-  return res.render(
-    "dashboard/index",
-    {
-      ...pageMeta(req, {
-        title: "Dashboard",
-        description: "Members dashboard.",
-        path: "/dashboard",
-        ogType: "website",
-        robots: "noindex, nofollow", // dashboard should not be indexed
-      }),
-      user,
-    }
-  );
+  return res.render("dashboard/index", {
+    ...pageMeta(req, {
+      title: "Dashboard",
+      description: "Members dashboard.",
+      path: "/dashboard",
+      ogType: "website",
+      robots: "noindex, nofollow",
+    }),
+    user,
+  });
 });
 
 export default router;
