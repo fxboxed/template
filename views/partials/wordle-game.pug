@@ -77,8 +77,12 @@ mixin wordleGame(opts)
       p#wordle-toast.game__toast(aria-live="polite")
 
       .share#wordle-sharePanel(hidden)
-        h2.share__title Share result
+        h2.share__title Share
         pre#wordle-shareText.share__text(aria-label="Share text")
+
         .share__actions
-          button#wordle-copyBtn.btn(type="button") Copy to clipboard
+          button#wordle-copyBtn.btn(type="button") Copy result
+          button#wordle-copyLinkBtn.btn.btn--ghost(type="button") Copy link
+          button#wordle-nativeShareBtn.btn.btn--ghost(type="button") Share…
+          button#wordle-fbBtn.btn.btn--ghost(type="button") Facebook
           button#wordle-closeShareBtn.btn.btn--ghost(type="button") Close

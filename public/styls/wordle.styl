@@ -1,9 +1,12 @@
 // public/styls/wordle.styl
-// Wordle / Game 1 styles (Stylus-valid, responsive, includes present/correct/absent)
+// Fix: empty/typing tiles must be readable even if global CSS sets color white.
+// We scope variables under .game--wordle and set empty-tile text explicitly.
 
-:root
-  --w-empty-bg: transparent
-  --w-empty-border: rgba(255,255,255,0.22)
+.game--wordle
+  // Light mode defaults
+  --w-empty-bg: rgba(0,0,0,0.03)
+  --w-empty-border: rgba(0,0,0,0.22)
+  --w-empty-text: rgba(0,0,0,0.92)
 
   --w-absent-bg: #3a3a3c
   --w-absent-border: #3a3a3c
@@ -14,12 +17,21 @@
   --w-correct-bg: #538d4e
   --w-correct-border: #538d4e
 
-  --w-tile-text: #ffffff
-  --w-key-bg: rgba(255,255,255,0.10)
-  --w-key-border: rgba(255,255,255,0.14)
+  --w-key-bg: rgba(0,0,0,0.06)
+  --w-key-border: rgba(0,0,0,0.14)
+  --w-key-text: rgba(0,0,0,0.92)
 
-.game--wordle
   width: 100%
+
+@media (prefers-color-scheme: dark)
+  .game--wordle
+    --w-empty-bg: rgba(255,255,255,0.06)
+    --w-empty-border: rgba(255,255,255,0.22)
+    --w-empty-text: rgba(255,255,255,0.92)
+
+    --w-key-bg: rgba(255,255,255,0.10)
+    --w-key-border: rgba(255,255,255,0.14)
+    --w-key-text: rgba(255,255,255,0.92)
 
 .game--wordle .game__header
   display: grid
@@ -62,7 +74,8 @@
   grid-template-columns: repeat(5, 1fr)
   gap: 8px
 
-.wordle__tile
+// Tiles
+.game--wordle .wordle__tile
   width: clamp(44px, 10vw, 56px)
   height: clamp(44px, 10vw, 56px)
   display: grid
@@ -70,29 +83,35 @@
   border-radius: 10px
   border: 2px solid var(--w-empty-border)
   background: var(--w-empty-bg)
-  color: var(--w-tile-text)
   font-weight: 700
   font-size: clamp(18px, 4.2vw, 26px)
   text-transform: uppercase
   line-height: 1
   letter-spacing: 0.5px
 
-.wordle__tile[data-state="empty"]
+// ✅ empty tiles: force readable text (protect against global `color: #fff`)
+.game--wordle .wordle__tile[data-state="empty"]
   background: var(--w-empty-bg)
   border-color: var(--w-empty-border)
+  color: var(--w-empty-text) !important
 
-.wordle__tile[data-state="absent"]
+// result tiles
+.game--wordle .wordle__tile[data-state="absent"]
   background: var(--w-absent-bg)
   border-color: var(--w-absent-border)
+  color: #fff !important
 
-.wordle__tile[data-state="present"]
+.game--wordle .wordle__tile[data-state="present"]
   background: var(--w-present-bg)
   border-color: var(--w-present-border)
+  color: #fff !important
 
-.wordle__tile[data-state="correct"]
+.game--wordle .wordle__tile[data-state="correct"]
   background: var(--w-correct-bg)
   border-color: var(--w-correct-border)
+  color: #fff !important
 
+// Keyboard
 .wordle__keyboard
   display: grid
   gap: 8px
@@ -103,11 +122,11 @@
   gap: 6px
   justify-content: center
 
-.kb__key
+.game--wordle .kb__key
   appearance: none
   border: 1px solid var(--w-key-border)
   background: var(--w-key-bg)
-  color: #fff
+  color: var(--w-key-text)
   border-radius: 12px
   padding: 10px 10px
   min-width: 34px
@@ -117,7 +136,7 @@
   touch-action: manipulation
   user-select: none
 
-.kb__key:active
+.game--wordle .kb__key:active
   transform: translateY(1px)
 
 .kb__key--wide
@@ -125,18 +144,22 @@
   padding-left: 12px
   padding-right: 12px
 
-.kb__key[data-state="absent"]
+.game--wordle .kb__key[data-state="absent"]
   background: var(--w-absent-bg)
   border-color: var(--w-absent-border)
+  color: #fff
 
-.kb__key[data-state="present"]
+.game--wordle .kb__key[data-state="present"]
   background: var(--w-present-bg)
   border-color: var(--w-present-border)
+  color: #fff
 
-.kb__key[data-state="correct"]
+.game--wordle .kb__key[data-state="correct"]
   background: var(--w-correct-bg)
   border-color: var(--w-correct-border)
+  color: #fff
 
+// Footer / share
 .game--wordle .game__footer
   margin-top: 14px
   display: grid
@@ -156,8 +179,13 @@
   margin-top: 10px
   padding: 12px
   border-radius: 14px
-  border: 1px solid rgba(255,255,255,0.14)
-  background: rgba(255,255,255,0.06)
+  border: 1px solid rgba(0,0,0,0.14)
+  background: rgba(0,0,0,0.04)
+
+@media (prefers-color-scheme: dark)
+  .share
+    border: 1px solid rgba(255,255,255,0.14)
+    background: rgba(255,255,255,0.06)
 
 .share__title
   margin: 0 0 8px 0
@@ -168,9 +196,14 @@
   word-break: break-word
   padding: 10px
   border-radius: 12px
-  border: 1px solid rgba(255,255,255,0.12)
-  background: rgba(0,0,0,0.25)
+  border: 1px solid rgba(0,0,0,0.12)
+  background: rgba(0,0,0,0.06)
   font-variant-numeric: tabular-nums
+
+@media (prefers-color-scheme: dark)
+  .share__text
+    border: 1px solid rgba(255,255,255,0.12)
+    background: rgba(0,0,0,0.25)
 
 .share__actions
   margin-top: 10px
@@ -178,7 +211,7 @@
   gap: 10px
   flex-wrap: wrap
 
-// Animations (Stylus-safe indentation)
+// Animations
 @keyframes wordleShake
   0%
     transform: translateX(0)
@@ -209,9 +242,8 @@
   animation: wordleFlip 0.52s ease-in-out
   animation-delay: calc(var(--i, 0) * 80ms)
 
-// Mobile tweaks
 @media (max-width: 420px)
-  .kb__key
+  .game--wordle .kb__key
     height: 44px
     padding: 8px 8px
     border-radius: 11px

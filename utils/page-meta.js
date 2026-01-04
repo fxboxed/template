@@ -1,67 +1,109 @@
 // utils/page-meta.js (ESM)
+// Generates consistent SEO + OG + Twitter locals for views/layout.pug
 
 function stripTrailingSlashes(s) {
   return String(s || "").replace(/\/+$/, "");
 }
 
-function ensureLeadingSlash(s) {
-  const v = String(s || "");
-  if (!v) return "/";
-  return v.startsWith("/") ? v : `/${v}`;
+function ensureLeadingSlash(p) {
+  const s = String(p || "");
+  if (!s) return "/";
+  return s.startsWith("/") ? s : `/${s}`;
 }
 
-function getBaseUrl(req) {
-  const envBase = String(process.env.BASE_URL || "").trim();
-  if (envBase) return stripTrailingSlashes(envBase);
+function absoluteUrl(baseUrl, pathOrUrl) {
+  const v = String(pathOrUrl || "").trim();
+  if (!v) return "";
+  if (/^https?:\/\//i.test(v)) return v;
 
-  const xfProto = req.headers["x-forwarded-proto"];
-  const proto = (xfProto && String(xfProto).split(",")[0].trim()) || req.protocol || "http";
-  const host = (req.get && req.get("host")) || req.headers.host || "localhost";
+  const b = stripTrailingSlashes(String(baseUrl || "").trim());
+  const p = ensureLeadingSlash(v);
+  return b ? `${b}${p}` : p;
+}
+
+function firstCsvValue(v) {
+  // x-forwarded-proto can be "https,http"
+  return String(v || "").split(",")[0].trim();
+}
+
+function inferBaseUrl(req) {
+  // Prefer BASE_URL, else infer from request (works in dev and prod)
+  const envBase = stripTrailingSlashes(String(process.env.BASE_URL || "").trim());
+  if (envBase) return envBase;
+
+  const xfProto = firstCsvValue(req?.headers?.["x-forwarded-proto"]);
+  const xfHost = firstCsvValue(req?.headers?.["x-forwarded-host"]);
+
+  const proto = xfProto || req?.protocol || "http";
+  const host = xfHost || req?.headers?.host || "localhost";
+
   return stripTrailingSlashes(`${proto}://${host}`);
 }
 
+/**
+ * pageMeta(req, meta, extra)
+ * meta: {
+ *   title, description,
+ *   path,               // path for current route, e.g. "/games/game1"
+ *   canonical,          // absolute or path, overrides canonicalPath/path
+ *   canonicalPath,      // path, used to force canonical/og:url (e.g. "/games/wordle")
+ *   ogType, ogImage,
+ *   twitterCard, twitterImage,
+ *   robots, siteName
+ * }
+ */
 export function pageMeta(req, meta = {}, extra = {}) {
-  const siteName = String(meta.siteName || process.env.SITE_NAME || "Site").trim();
+  const baseUrl = inferBaseUrl(req);
 
-  const baseUrl = getBaseUrl(req);
-  const path =
-    meta.path != null ? ensureLeadingSlash(meta.path) : ensureLeadingSlash(req.originalUrl || "/");
+  const siteName = String(meta.siteName || process.env.SITE_NAME || "aptati").trim();
 
-  const canonical = meta.canonical ? String(meta.canonical).trim() : `${baseUrl}${path}`;
+  const requestPath = meta.path
+    ? ensureLeadingSlash(meta.path)
+    : (req?.path ? ensureLeadingSlash(req.path) : "/");
 
-  const titleRaw = String(meta.title || "").trim();
-  const title = titleRaw ? `${titleRaw} | ${siteName}` : siteName;
+  const canonicalPath = meta.canonicalPath
+    ? ensureLeadingSlash(meta.canonicalPath)
+    : requestPath;
 
-  const description = String(meta.description || "").trim() || "Static Node site";
+  const canonical = meta.canonical
+    ? absoluteUrl(baseUrl, meta.canonical)
+    : absoluteUrl(baseUrl, canonicalPath);
 
-  const ogType = String(meta.ogType || "website").trim();
+  // Prefer explicit per-page ogImage; else allow DEFAULT_OG_IMAGE; else empty
+  const defaultOgImage = process.env.DEFAULT_OG_IMAGE
+    ? absoluteUrl(baseUrl, String(process.env.DEFAULT_OG_IMAGE).trim())
+    : "";
 
-  const defaultOgImage = meta.defaultOgImage ? String(meta.defaultOgImage).trim() : "";
-  const ogImage = meta.ogImage ? String(meta.ogImage).trim() : "";
-
-  const twitterImage = meta.twitterImage ? String(meta.twitterImage).trim() : (ogImage || "");
-  const twitterCard = String(
-    meta.twitterCard || (twitterImage ? "summary_large_image" : "summary")
-  ).trim();
-
-  const twitterSite = String(meta.twitterSite || "").trim();
-  const twitterCreator = String(meta.twitterCreator || "").trim();
-
-  const robots = String(meta.robots || "").trim();
+  const ogImage = meta.ogImage ? absoluteUrl(baseUrl, meta.ogImage) : "";
+  const twitterImage =
+    meta.twitterImage
+      ? absoluteUrl(baseUrl, meta.twitterImage)
+      : (ogImage || defaultOgImage);
 
   return {
-    title,
-    description,
+    // Core SEO
+    title: String(meta.title || "Site"),
+    description: String(meta.description || "Static Node site"),
     canonical,
+
+    // Open Graph
     siteName,
-    ogType,
-    ogImage,
+    ogType: String(meta.ogType || "website"),
+    ogImage,          // if empty, layout falls back to defaultOgImage
     defaultOgImage,
-    twitterCard,
+
+    // Twitter
+    twitterCard: String(meta.twitterCard || "summary_large_image"),
     twitterImage,
-    twitterSite,
-    twitterCreator,
-    robots,
-    ...(extra || {}),
+
+    // Robots
+    robots: meta.robots ? String(meta.robots) : "",
+
+    // Debug/helpful
+    baseUrl,
+    path: requestPath,
+
+    // passthrough extras
+    ...extra,
   };
 }

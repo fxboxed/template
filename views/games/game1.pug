@@ -2,6 +2,7 @@
 extends ../layout
 
 block content
+  img(src="/images/og/placeholder1.jpg", alt="")
   include ../partials/wordle-game
   +wordleGame({ gameKey: 'wordle', idx: 0, maxIdx: 49, premiumEnabled: false, dayKey: dayKey })
 

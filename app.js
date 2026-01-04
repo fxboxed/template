@@ -51,10 +51,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ API mounts (game1 primary, wordle alias)
-// Client should use /api/games/game1/guess, but alias keeps old code from breaking.
+// ✅ Game 1 API mount
+// Client calls POST /api/games/game1/guess
 app.use("/api/games/game1", wordleApi);
-app.use("/api/games/wordle", wordleApi);
 
 // ---- session cookie
 app.use(
@@ -163,11 +162,10 @@ app.use((req, res, next) => {
   res.locals.isAuthed = authed;
   res.locals.user = req.user || null;
   res.locals.gaId = String(process.env.GA_MEASUREMENT_ID || "").trim();
-
   next();
 });
 
-// Debug: who am I?
+// ✅ Debug: who am I?
 app.get("/me", (req, res) => {
   const authed = typeof req.isAuthenticated === "function" && req.isAuthenticated();
   return res.json({
@@ -177,7 +175,7 @@ app.get("/me", (req, res) => {
   });
 });
 
-// health: db
+// ---- health: db
 app.get("/health/db", (req, res) => {
   const state = mongoStatus();
   const map = ["disconnected", "connected", "connecting", "disconnecting"];
@@ -201,25 +199,30 @@ app.get("/", (req, res) => {
   );
 });
 
-// ✅ Game 1 page (Wordle)
+// ✅ Game 1 page route (Wordle)
 app.get("/games/game1", (req, res) => {
   const dayKey = getDayKeyUTC(new Date());
+
   return res.render(
     "games/game1",
     pageMeta(
       req,
       {
         title: "Game 1",
-        description: "Daily global word puzzle (UTC).",
+        description: "Daily global Wordle-style puzzle (UTC).",
         path: "/games/game1",
         ogType: "website",
+
+        // Optional OG image if you add one later:
+        // ogImage: "/img/og/game1.png",
+        // twitterImage: "/img/og/game1.png",
       },
       { dayKey }
     )
   );
 });
 
-// Alias: old route still works
+// Friendly alias for sharing/bookmarks
 app.get("/games/wordle", (req, res) => res.redirect(302, "/games/game1"));
 
 app.use("/", authRoutes);
@@ -230,39 +233,31 @@ app.use("/", staticRoutes);
 
 // ---- 404
 app.use((req, res) => {
-  return res.status(404).render(
-    "404",
-    pageMeta(
-      req,
-      {
-        title: "404",
-        description: "Page not found.",
-        path: req.originalUrl || "/",
-        ogType: "website",
-        robots: "noindex, nofollow",
-      },
-      { url: req.originalUrl }
-    )
-  );
+  return res.status(404).render("404", {
+    ...pageMeta(req, {
+      title: "404",
+      description: "Page not found.",
+      path: req.originalUrl || "/",
+      ogType: "website",
+      robots: "noindex, nofollow",
+    }),
+    url: req.originalUrl,
+  });
 });
 
 // ---- error handler
 app.use((err, req, res, next) => {
   console.error(err);
-  return res.status(500).render(
-    "500",
-    pageMeta(
-      req,
-      {
-        title: "Server error",
-        description: "Something broke.",
-        path: req.originalUrl || "/",
-        ogType: "website",
-        robots: "noindex, nofollow",
-      },
-      { message: isProd ? "Something broke." : err.message }
-    )
-  );
+  return res.status(500).render("500", {
+    ...pageMeta(req, {
+      title: "Server error",
+      description: "Something broke.",
+      path: req.originalUrl || "/",
+      ogType: "website",
+      robots: "noindex, nofollow",
+    }),
+    message: isProd ? "Something broke." : err.message,
+  });
 });
 
 // ---- start
@@ -274,8 +269,7 @@ async function start() {
     if (isProd) process.exit(1);
   }
 
-  // bind to all interfaces (helps Docker/WSL too)
-  app.listen(PORT, "0.0.0.0", () => {
+  app.listen(PORT, () => {
     console.log(`✅ aptati running on http://localhost:${PORT}`);
   });
 }
