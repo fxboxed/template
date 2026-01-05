@@ -24,7 +24,8 @@
   margin 0 auto
   box-shadow: 0 4px 12px rgba(0,0,0,0.1)
   border-radius: 16px
-  width: 100%
+  width: 100vw
+  max-width 424px
   border 1px solid red
 
 @media (prefers-color-scheme: dark)
@@ -129,14 +130,15 @@
   display: grid
   gap: 6px
   justify-content: center
-  border 1px solid #000
+  //border 1px solid #000
 
 .kb__row
   display: flex
   gap: 5px
   justify-content: space-between //center
-  border 1px solid blue
-  width 100%
+  //border 1px solid blue
+  max-width 400px // 100%
+  width 100vw
 .game--wordle .kb__key
   appearance: none
   border: 1px solid var(--w-key-border)
@@ -145,7 +147,7 @@
   border-radius: 50% //12px
   padding: 10px 10px
   min-width: 32px
-  height: 32px //46px
+  max-height: 32px //46px
   font-weight: 700
   cursor: pointer
   touch-action: manipulation
