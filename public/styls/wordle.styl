@@ -26,7 +26,7 @@
   border-radius: 16px
   width: 100vw
   max-width 424px
-  border 1px solid red
+  //border 1px solid red
 
 @media (prefers-color-scheme: dark)
   .game--wordle
@@ -130,12 +130,12 @@
   display: grid
   gap: 6px
   justify-content: center
-  border 1px solid #000
+  //border 1px solid #000
 
 .kb__row
   display: flex
   //gap: 5px
-  justify-content: space-between //center
+  justify-content: space-around //space-between //center
   //border 1px solid blue
   max-width 400px // 100%
   width 100vw
@@ -145,7 +145,7 @@
   background: alpha //var(--w-key-bg)
   color: alpha + 60% //var(--w-key-text)
   border-radius: 50% //12px
-  padding: 10px 10px
+  padding: 8px 8px
   max-width: 32px
   max-height: 32px //46
   font-size 1rem
@@ -159,6 +159,7 @@
   display flex 
   align-items center
   justify-content center
+  transition all 1s ease-in-out
   //background green
 
 .game--wordle .kb__key:active
@@ -166,11 +167,12 @@
 
 button.kb__key.kb__key--wide
   //min-width: 72px
-  padding-left: 12px
-  padding-right: 12px
-  background alpha  - 30%
+  padding-left: 8px
+  padding-right: 8px
+  background transparent //alpha  - 30%
   border-radius 0
-e
+  width fit-content
+
 .game--wordle .kb__key[data-state="absent"]
   background rgba(alpha - 70%, 0.4)
   //border-color: alpha - 20% //var(--w-absent-border)
@@ -204,9 +206,9 @@ e
 button#wordle-resetBtn.btn.btn--ghost, button#wordle-helpBtn.btn.btn--ghost
     //background blue
     padding 8px 12px
-    border 1px solid alpha - 20%
+    border 1px solid alpha //- 10%
     border-radius 8px
-    color alpha - 20%
+    color alpha + 40% //- 20%
 .game--wordle .game__toast
   min-height: 20px
   font-size: 14px
