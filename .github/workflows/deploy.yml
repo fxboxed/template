@@ -1,0 +1,29 @@
+name: Deploy to Hetzner (main)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          port: ${{ secrets.HETZNER_PORT }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch origin main
+            git reset --hard origin/main
+            npm ci
+            # build css if your script exists (won't fail if missing)
+            npm run stylus || true
+            pm2 restart aptati --update-env
+            pm2 save
+            pm2 status

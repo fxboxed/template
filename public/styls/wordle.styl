@@ -20,8 +20,12 @@
   --w-key-bg: rgba(0,0,0,0.06)
   --w-key-border: rgba(0,0,0,0.14)
   --w-key-text: rgba(0,0,0,0.92)
-
+  max-width: 400px
+  margin 0 auto
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1)
+  border-radius: 16px
   width: 100%
+  //border 1px solid red
 
 @media (prefers-color-scheme: dark)
   .game--wordle
@@ -37,17 +41,20 @@
   display: grid
   gap: 10px
   margin-bottom: 14px
+  background alpha - 40%
 
 .game--wordle .game__title
   margin: 0
   font-size: clamp(22px, 2.4vw, 34px)
   line-height: 1.1
+  text-align: center
 
 .game--wordle .game__sub,
 .game--wordle .game__attempts,
 .game--wordle .game__streak
   margin: 0
   opacity: 0.92
+  margin auto
 
 .game--wordle .game__countdown
   margin-left: 8px
@@ -91,73 +98,86 @@
 
 // ✅ empty tiles: force readable text (protect against global `color: #fff`)
 .game--wordle .wordle__tile[data-state="empty"]
-  background: var(--w-empty-bg)
-  border-color: var(--w-empty-border)
+  background: alpha //+ 20% //var(--w-empty-bg)
+  //border-color: var(--w-empty-border)
   color: var(--w-empty-text) !important
+  border none
 
 // result tiles
 .game--wordle .wordle__tile[data-state="absent"]
-  background: var(--w-absent-bg)
-  border-color: var(--w-absent-border)
-  color: #fff !important
+  background rgba(alpha - 70%, 0.4)
+  //border-color: alpha - 20% //var(--w-absent-border)
+  color: alpha  !important
+  border none
 
 .game--wordle .wordle__tile[data-state="present"]
-  background: var(--w-present-bg)
-  border-color: var(--w-present-border)
-  color: #fff !important
+  background: rgba(beta, 0.7)
+   //orange + 60%//-present-bg)
+  //border-color: beta - 20%  //var(--w-present-border)
+  color: alpha + 60%  !important
 
 .game--wordle .wordle__tile[data-state="correct"]
-  background: var(--w-correct-bg)
-  border-color: var(--w-correct-border)
-  color: #fff !important
+  background: rgba(green, .5) //var(--w-correct-bg)
+  //border-color: var(--w-correct-border)
+  border none
+  color: alpha + 60%  !important
+  //rder 1px solid orange
+  //ckground red
 
 // Keyboard
 .wordle__keyboard
   display: grid
-  gap: 8px
+  gap: 6px
   justify-content: center
 
 .kb__row
   display: flex
-  gap: 6px
+  gap: 5px
   justify-content: center
 
 .game--wordle .kb__key
   appearance: none
   border: 1px solid var(--w-key-border)
-  background: var(--w-key-bg)
-  color: var(--w-key-text)
-  border-radius: 12px
+  background: alpha //var(--w-key-bg)
+  color: alpha + 60% //var(--w-key-text)
+  border-radius: 50% //12px
   padding: 10px 10px
-  min-width: 34px
-  height: 46px
+  min-width: 32px
+  height: 32px //46px
   font-weight: 700
   cursor: pointer
   touch-action: manipulation
   user-select: none
+  display flex 
+  align-items center
+  justify-content center
+  //background green
 
 .game--wordle .kb__key:active
   transform: translateY(1px)
 
-.kb__key--wide
-  min-width: 72px
+button.kb__key.kb__key--wide
+  //min-width: 72px
   padding-left: 12px
   padding-right: 12px
-
+  background alpha  - 30%
+  border-radius 0
+e
 .game--wordle .kb__key[data-state="absent"]
-  background: var(--w-absent-bg)
-  border-color: var(--w-absent-border)
-  color: #fff
+  background rgba(alpha - 70%, 0.4)
+  //border-color: alpha - 20% //var(--w-absent-border)
+  color: alpha  !important
+
 
 .game--wordle .kb__key[data-state="present"]
-  background: var(--w-present-bg)
-  border-color: var(--w-present-border)
-  color: #fff
+  background: rgba(beta, 0.7)
+  border none
+  color: alpha + 50%//- 10%
 
 .game--wordle .kb__key[data-state="correct"]
-  background: var(--w-correct-bg)
-  border-color: var(--w-correct-border)
-  color: #fff
+  background: rgba(green, .5)
+  border-color: none
+  color: alpha + 80%
 
 // Footer / share
 .game--wordle .game__footer
@@ -167,9 +187,18 @@
 
 .game--wordle .game__actions
   display: flex
+  justify-content: center
   gap: 10px
   flex-wrap: wrap
+  color: alpha
+  //background blue
 
+button#wordle-resetBtn.btn.btn--ghost, button#wordle-helpBtn.btn.btn--ghost
+    //background blue
+    padding 8px 12px
+    border 1px solid alpha - 20%
+    border-radius 8px
+    color alpha - 20%
 .game--wordle .game__toast
   min-height: 20px
   font-size: 14px

@@ -16,10 +16,10 @@ mixin wordleGame(opts)
     data-status="playing"
   )
     header.game__header
-      h1.game__title Game 1
+      h1.game__title Aptati Wordle
 
       p.game__sub
-        | Daily global puzzle (UTC). Next puzzle in
+        | Daily  puzzle (UTC). Next puzzle in
         span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00
 
       //- ✅ Attempts indicator
@@ -28,7 +28,7 @@ mixin wordleGame(opts)
         span#wordle-attempts 1/6
 
       //- ✅ Streak indicator
-      p#wordle-streak.game__streak(aria-live="polite") Streak: 0
+      //- p#wordle-streak.game__streak(aria-live="polite") Streak: 0
 
       if premiumEnabled
         .game__idx
@@ -71,8 +71,9 @@ mixin wordleGame(opts)
 
     section.game__footer
       .game__actions
-        button#wordle-shareBtn.btn(type="button") Share
-        button#wordle-resetBtn.btn.btn--ghost(type="button") Reset (local)
+        //- button#wordle-shareBtn.btn(type="button") Share
+        button#wordle-resetBtn.btn.btn--ghost(type="button") Reset Game
+        button#wordle-helpBtn.btn.btn--ghost(type="button") Help
 
       p#wordle-toast.game__toast(aria-live="polite")
 
