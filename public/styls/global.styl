@@ -10,20 +10,18 @@ dark = #000
 max-width = 1200px
 body
     font-family 'Arial', sans-serif
-    //background-color red // #f5f5f5
-    color #333
-    min-height 100vh
-
-main.site-main 
-    display flex
-    flex-direction column
-    align-items center
-    justify-content center
-    //background pink
-    width 100%
-    //padding 2rem 1rem
     background alpha - 40%
-    min-height calc(100vh - 60px)
+    color #333
+    //min-height 100vh
+
+.site-main 
+    //margin-top 4.1rem
+    width 100%
+    //background yellow
+    padding 0
+@media(min-width 960px)
+    .site-main 
+        padding 1rem 0
 a
     text-decoration none
     color alpha
@@ -39,11 +37,7 @@ button
     outline none
     &:hover
         opacity 0.9
-// Layout controls
-.container
-    width 100%
-    max-width max-width
-    //background blue
+
     
     margin 0 auto
 .txt-center

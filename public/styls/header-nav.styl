@@ -2,9 +2,9 @@
 // top nav
 // side nav
 // single nav for both mobile and desktop
-.navwrap, header
+.header-nav
     width 100%
-    //border 2px solid blue
+    //border 4px solid blue
     align-items start
     justify-content: space-between
     padding 0 1rem
@@ -15,11 +15,11 @@
     min-height 100vh
     height 100%
     background alpha - 60% //beta
-    //position absolute
+    position absolute
     top 0
     left 0
-    z-index 1
-
+    z-index 10
+    padding-top 4rem
     nav.navbar
         width 100%
         max-width max-width
@@ -48,7 +48,7 @@
                 //border 1px solid green
                 &:hover
                     color beta
-.nav-open
+.header-nav.nav-open
     transform scale(1)
     transition transform .3s ease-in-out
 .logo
@@ -67,8 +67,8 @@
     width 40px
     cursor pointer
     position fixed
-    top 1rem
-    right 1rem
+    top .8rem
+    right .8rem
     z-index 20
     padding .2rem
     span.bar
@@ -82,12 +82,13 @@
 @media(min-width 900px)
     .burger
         display none
-    .navwrap, header
+    header.header-nav
         width 100%
         //background red
         align-items center
         justify-content: space-between
         padding 0 1rem
+        position relative
         min-height 0
         height fit-content
         //display none
@@ -105,17 +106,19 @@
         ul.navlist
             list-style none
             //border 3px solid green
-            display grid
+            display flex
             grid-template-columns repeat(6, 1fr)
+            flex-direction row
             align-items: center
+            justify-content right      
             //flex-direction row
             gap .6rem
             margin 0
             padding 0
-            min-width 760px
+            min-width 900px
             li.navitem
                 //border 1px solid red
-                
+                width fit-content
                 white-space nowrap
                 padding .3rem
                 a
@@ -126,8 +129,9 @@
                     font-weight bold
                     flex-wrap no-wrap
                     white-space no-wrap
+                    width fit-content
                     //padding .8rem
                     //border 1px solid blue
-                    min-width 100%   
+                    //min-width 100%   
                     &:hover
                         color beta

@@ -6,84 +6,85 @@ mixin wordleGame(opts)
   - const maxIdx = (opts && typeof opts.maxIdx === 'number') ? opts.maxIdx : 49
   - const premiumEnabled = !!(opts && opts.premiumEnabled)
   - const dayKey = (opts && opts.dayKey) ? opts.dayKey : ''
+  .wordle-game-wrap 
 
-  main.game.game--wordle(
-    data-game-key=gameKey
-    data-day-key=dayKey
-    data-idx=idx
-    data-max-idx=maxIdx
-    data-premium-enabled=premiumEnabled ? '1' : '0'
-    data-status="playing"
-  )
-    header.game__header
-      h1.game__title Aptati Wordle
+    .game.game--wordle(
+      data-game-key=gameKey
+      data-day-key=dayKey
+      data-idx=idx
+      data-max-idx=maxIdx
+      data-premium-enabled=premiumEnabled ? '1' : '0'
+      data-status="playing"
+    )
+      header.game__header
+        h1.game__title Aptati Wordle
 
-      p.game__sub
-        | Daily  puzzle (UTC). Next puzzle in
-        span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00
+        p.game__sub
+          |  Next puzzle in
+          span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00 
+          |  hours
+        //- ✅ Attempts indicator
+        p#wordle-attemptsLine.game__attempts(aria-live="polite")
+          | Attempt:
+          span#wordle-attempts 1/6
 
-      //- ✅ Attempts indicator
-      p#wordle-attemptsLine.game__attempts(aria-live="polite")
-        | Attempt:
-        span#wordle-attempts 1/6
+        //- ✅ Streak indicator
+        //- p#wordle-streak.game__streak(aria-live="polite") Streak: 0
 
-      //- ✅ Streak indicator
-      //- p#wordle-streak.game__streak(aria-live="polite") Streak: 0
+        if premiumEnabled
+          .game__idx
+            label(for="wordle-idx") Puzzle
+            select#wordle-idx(name="idx" aria-label="Puzzle index")
+              each val in Array.from({length: maxIdx + 1}, (_, i) => i)
+                option(value=val selected=(val === idx))= val
+        else
+          input(type="hidden" id="wordle-idx" value=idx)
 
-      if premiumEnabled
-        .game__idx
-          label(for="wordle-idx") Puzzle
-          select#wordle-idx(name="idx" aria-label="Puzzle index")
-            each val in Array.from({length: maxIdx + 1}, (_, i) => i)
-              option(value=val selected=(val === idx))= val
-      else
-        input(type="hidden" id="wordle-idx" value=idx)
+      section.game__stage
+        .wordle
+          .wordle__board#wordle-board(role="grid" aria-label="Word grid")
+            - const rows = 6
+            - const cols = 5
+            each r in Array.from({length: rows}, (_, i) => i)
+              .wordle__row(role="row" data-row=r)
+                each c in Array.from({length: cols}, (_, i) => i)
+                  .wordle__tile(
+                    role="gridcell"
+                    aria-label=`Row ${r+1} Column ${c+1}`
+                    data-row=r
+                    data-col=c
+                    data-state="empty"
+                    style=`--i:${c}`
+                  )
 
-    section.game__stage
-      .wordle
-        .wordle__board#wordle-board(role="grid" aria-label="Word grid")
-          - const rows = 6
-          - const cols = 5
-          each r in Array.from({length: rows}, (_, i) => i)
-            .wordle__row(role="row" data-row=r)
-              each c in Array.from({length: cols}, (_, i) => i)
-                .wordle__tile(
-                  role="gridcell"
-                  aria-label=`Row ${r+1} Column ${c+1}`
-                  data-row=r
-                  data-col=c
-                  data-state="empty"
-                  style=`--i:${c}`
-                )
+          .wordle__keyboard#wordle-keyboard(aria-label="Keyboard")
+            .kb__row
+              each k in ['Q','W','E','R','T','Y','U','I','O','P']
+                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb__row
+              each k in ['A','S','D','F','G','H','J','K','L']
+                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb__row
+              button.kb__key.kb__key--wide(type="button" data-key="Enter" aria-label="Enter") Enter
+              each k in ['Z','X','C','V','B','N','M']
+                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
+              button.kb__key.kb__key--wide(type="button" data-key="Backspace" aria-label="Backspace") ⌫
 
-        .wordle__keyboard#wordle-keyboard(aria-label="Keyboard")
-          .kb__row
-            each k in ['Q','W','E','R','T','Y','U','I','O','P']
-              button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-          .kb__row
-            each k in ['A','S','D','F','G','H','J','K','L']
-              button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-          .kb__row
-            button.kb__key.kb__key--wide(type="button" data-key="Enter" aria-label="Enter") Enter
-            each k in ['Z','X','C','V','B','N','M']
-              button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-            button.kb__key.kb__key--wide(type="button" data-key="Backspace" aria-label="Backspace") ⌫
+      section.game__footer
+        .game__actions
+          //- button#wordle-shareBtn.btn(type="button") Share
+          button#wordle-resetBtn.btn.btn--ghost(type="button") Reset Game
+          button#wordle-helpBtn.btn.btn--ghost(type="button") Help
 
-    section.game__footer
-      .game__actions
-        //- button#wordle-shareBtn.btn(type="button") Share
-        button#wordle-resetBtn.btn.btn--ghost(type="button") Reset Game
-        button#wordle-helpBtn.btn.btn--ghost(type="button") Help
+        //- p#wordle-toast.game__toast(aria-live="polite")
 
-      p#wordle-toast.game__toast(aria-live="polite")
+        .share#wordle-sharePanel(hidden)
+          h2.share__title Share
+          pre#wordle-shareText.share__text(aria-label="Share text")
 
-      .share#wordle-sharePanel(hidden)
-        h2.share__title Share
-        pre#wordle-shareText.share__text(aria-label="Share text")
-
-        .share__actions
-          button#wordle-copyBtn.btn(type="button") Copy result
-          button#wordle-copyLinkBtn.btn.btn--ghost(type="button") Copy link
-          button#wordle-nativeShareBtn.btn.btn--ghost(type="button") Share…
-          button#wordle-fbBtn.btn.btn--ghost(type="button") Facebook
-          button#wordle-closeShareBtn.btn.btn--ghost(type="button") Close
+          .share__actions
+            button#wordle-copyBtn.btn(type="button") Copy result
+            button#wordle-copyLinkBtn.btn.btn--ghost(type="button") Copy link
+            button#wordle-nativeShareBtn.btn.btn--ghost(type="button") Share…
+            button#wordle-fbBtn.btn.btn--ghost(type="button") Facebook
+            button#wordle-closeShareBtn.btn.btn--ghost(type="button") Close
