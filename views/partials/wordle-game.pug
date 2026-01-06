@@ -65,10 +65,10 @@ mixin wordleGame(opts)
               each k in ['A','S','D','F','G','H','J','K','L']
                 button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
             .kb__row
-              button.kb__key.kb__key--wide(type="button" data-key="Enter" aria-label="Enter") Enter
+              button.kb__key.wide-key.return(type="button" data-key="Enter" aria-label="Enter") ⏎
               each k in ['Z','X','C','V','B','N','M']
                 button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-              button.kb__key.kb__key--wide(type="button" data-key="Backspace" aria-label="Backspace") ⌫
+              button.kb__key.wide-key.backspace(type="button" data-key="Backspace" aria-label="Backspace") ⌫
 
       section.game__footer
         .game__actions

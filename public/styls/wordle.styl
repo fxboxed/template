@@ -1,6 +1,6 @@
 // public/styls/wordle.styl
 // Fix: empty/typing tiles must be readable even if global CSS sets color white.
-// We scope variables under .game--wordle and set empty-tile text explicitly.
+// We scope variables under and set empty-tile text explicitly.
 .wordle-game-wrap
   background alpha - 40%
   width fit-content
@@ -62,18 +62,18 @@
   border-bottom: 1px solid alpha + 20%
 .game__footer 
   padding 1rem
-.game--wordle .game__sub,
-.game--wordle .game__attempts,
-.game--wordle .game__streak
+.game__sub,
+.game__attempts,
+.game__streak
   margin: 0
   opacity: 0.92
   margin auto
 
-.game--wordle .game__countdown
+.game__countdown
   margin-left: 8px
   font-variant-numeric: tabular-nums
 
-.game--wordle .game__attempts span
+.game__attempts span
   margin-left: 8px
   font-variant-numeric: tabular-nums
 
@@ -95,7 +95,7 @@
   gap: 8px
 
 // Tiles
-.game--wordle .wordle__tile
+.wordle__tile
   width: clamp(44px, 10vw, 56px)
   height: clamp(44px, 10vw, 56px)
   display: grid
@@ -110,26 +110,26 @@
   letter-spacing: 0.5px
 
 // ✅ empty tiles: force readable text (protect against global `color: #fff`)
-.game--wordle .wordle__tile[data-state="empty"]
+.wordle__tile[data-state="empty"]
   background: alpha //+ 20% //var(--w-empty-bg)
   //border-color: var(--w-empty-border)
   color: var(--w-empty-text) !important
   border none
 
 // result tiles
-.game--wordle .wordle__tile[data-state="absent"]
+.wordle__tile[data-state="absent"]
   background rgba(alpha - 70%, 0.4)
   //border-color: alpha - 20% //var(--w-absent-border)
   color: alpha  !important
   border none
 
-.game--wordle .wordle__tile[data-state="present"]
+.wordle__tile[data-state="present"]
   background: rgba(beta, 0.7)
    //orange + 60%//-present-bg)
   //border-color: beta - 20%  //var(--w-present-border)
   color: alpha + 60%  !important
 
-.game--wordle .wordle__tile[data-state="correct"]
+.wordle__tile[data-state="correct"]
   background: rgba(green, .5) //var(--w-correct-bg)
   //border-color: var(--w-correct-border)
   border none
@@ -151,7 +151,7 @@
   //border 1px solid blue
   max-width 400px // 100%
   width 100vw
-.game--wordle .kb__key
+.kb__key
   appearance: none
   //border: 1px solid var(--w-key-border)
   background: alpha //var(--w-key-bg)
@@ -173,41 +173,49 @@
   justify-content center
   transition all 1s ease-in-out
   //background green
-
-.game--wordle .kb__key:active
-  transform: translateY(1px)
-
-button.kb__key.kb__key--wide
-  //min-width: 72px
-  padding-left: 4px
-  padding-right: 4px
-  background transparent //alpha  - 30%
-  border-radius 0
+.wide-key
+  //border 1px solid red
+  border-radius none
+  background: transparent
+  font-size 1.3rem
+  font-weight bold
+  color alpha +80%
   width fit-content
 
-.game--wordle .kb__key[data-state="absent"]
+.kb__key:active
+  transform: translateY(1px)
+
+// button.kb__key.kb__key--wide
+//   //min-width: 72px
+//   padding-left: 4px
+//   padding-right: 4px
+//   background transparent 
+//   border-radius 0
+//   width fit-content
+
+.kb__key[data-state="absent"]
   background rgba(alpha - 70%, 0.4)
   //border-color: alpha - 20% //var(--w-absent-border)
   color: alpha  !important
 
 
-.game--wordle .kb__key[data-state="present"]
+.kb__key[data-state="present"]
   background: rgba(beta, 0.7)
   border none
   color: alpha + 50%//- 10%
 
-.game--wordle .kb__key[data-state="correct"]
+.kb__key[data-state="correct"]
   background: rgba(green, .5)
   border-color: none
   color: alpha + 80%
 
 // Footer / share
-.game--wordle .game__footer
+.game__footer
   margin-top: 14px
   display: grid
   gap: 10px
 
-.game--wordle .game__actions
+.game__actions
   display: flex
   justify-content: center
   gap: 10px
@@ -221,7 +229,7 @@ button#wordle-resetBtn.btn.btn--ghost, button#wordle-helpBtn.btn.btn--ghost
     border 1px solid alpha //- 10%
     border-radius 8px
     color alpha + 40% //- 20%
-.game--wordle .game__toast
+.game__toast
   min-height: 20px
   font-size: 14px
   opacity: 0.95
@@ -293,11 +301,11 @@ button#wordle-resetBtn.btn.btn--ghost, button#wordle-helpBtn.btn.btn--ghost
   animation: wordleFlip 0.52s ease-in-out
   animation-delay: calc(var(--i, 0) * 80ms)
 
-@media (max-width: 420px)
-  .game--wordle .kb__key
-    height: 44px
-    padding: 8px 8px
-    border-radius: 11px
+// @media (max-width: 420px)
+//   .kb__key
+//     height: 44px
+//     padding: 8px 8px
+//     border-radius: 11px
 
-  .kb__key--wide
-    min-width: 64px
+//   .kb__key--wide
+//     min-width: 64px
