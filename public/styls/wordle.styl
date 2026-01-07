@@ -54,6 +54,7 @@
 .under-title  
   font-size: clamp(16px, 2.2vw, 24px)
   margin 0 auto
+  padding 1rem
   //border 1px solid blue
   text-align center
   .game-sub 
@@ -111,24 +112,41 @@
 
 // Tiles
 .wordle__tile
-  width: clamp(44px, 10vw, 56px)
-  height: clamp(44px, 10vw, 56px)
+  width: 4.3rem //clamp(44px, 10vw, 56px)
+  height:4.3rem //clamp(44px, 10vw, 56px)
   display: grid
   place-items: center
   border-radius: 10px
   border: 2px solid var(--w-empty-border)
-  background: var(--w-empty-bg)
+  background: alpha //var(--w-empty-bg)
   font-weight: 700
-  font-size: clamp(18px, 4.2vw, 26px)
+  font-size: 0
   text-transform: uppercase
   line-height: 1
   letter-spacing: 0.5px
+  animation: fontGrow 2s ease-out forwards
+@keyframes fontGrow
+  0%
+    font-size: 5rem
+  50%
+    font-size: 0rem
+  100%
+    font-size: clamp(32px, 6vw, 48px)
+
+.wordle__tile[data-state="empty"],
+.wordle__tile[data-state="absent"],
+.wordle__tile[data-state="present"],
+.wordle__tile[data-state="correct"]
+  animation-delay: 1s
+
 
 // ✅ empty tiles: force readable text (protect against global `color: #fff`)
 .wordle__tile[data-state="empty"]
-  background: alpha //+ 20% //var(--w-empty-bg)
+  //background: red //alpha //+ 20% //var(--w-empty-bg)
   //border-color: var(--w-empty-border)
-  color: var(--w-empty-text) !important
+  color pink
+  //color: var(--w-empty-text) !important
+  animation: fontGrow 2s ease-out forwards
   border none
 
 // result tiles
@@ -137,13 +155,13 @@
   //border-color: alpha - 20% //var(--w-absent-border)
   color: alpha  !important
   border none
-
+  animation: fontGrow 2s ease-out forwards
 .wordle__tile[data-state="present"]
   background: rgba(beta, 0.7)
    //orange + 60%//-present-bg)
   //border-color: beta - 20%  //var(--w-present-border)
   color: alpha + 60%  !important
-
+  animation: fontGrow 2s ease-out forwards
 .wordle__tile[data-state="correct"]
   background: rgba(green, .5) //var(--w-correct-bg)
   //border-color: var(--w-correct-border)
@@ -151,7 +169,7 @@
   color: alpha + 60%  !important
   //rder 1px solid orange
   //ckground red
-
+  animation: fontGrow 2s infinate //
 // Keyboard
 .wordle__keyboard
   display: grid

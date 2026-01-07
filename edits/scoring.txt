@@ -1,0 +1,6 @@
+1 correct tile = 2
+1 present tile = 1
+1 absent tile = 0
+
+after entering each row a toast will appear depending upon line total
+the toast will be visible for 1.5s
