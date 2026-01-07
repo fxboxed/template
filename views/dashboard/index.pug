@@ -3,26 +3,70 @@ extends ../layout.pug
 block head
 
 block content
-  h1 Dashboard
+  .dashboard-wrap
+    h1.txt-center Dashboard
+    .play-btns
+      button.play-btn Wordle
+      button.play-btn Quiz
+      button.play-btn Challenges
+    .user-details
 
-  if user
-    - var display = user.displayName || user.email || "Member";
-    p Logged in as #{display}
+      .awards-wrap 
+        h3.txt-center Your Awards
+        //- for wordle awards
+        .award-btns
+          button.award-btn All
+          button.award-btn Wordle
+          button.award-btn Quiz
+          button.award-btn Challenges
+        .awards-grid
+          .award 
+            .badge 🏆
+            p Grand Master: 
+            span 0
 
-    if user.photo
-      img(src=user.photo alt="Profile photo" width="72" height="72" loading="lazy")
+          .award 
+            .badge 🥈
+            p Expert: 
+            span 0
 
-    if user.email
-      p #{user.email}
+          .award 
+            .badge 🥉
+            p Challenger:
+            span 0
+          .award 
+            .badge 🔍
+            p Novice:
+            span 0
+          .award 
+            .badge 🎗️
+            p Absolute Beginner: 
+            span 0
+          .award 
+            .badge 🏅
+            p Not A Damned Clue: 
+            span 0
+      .user
+        if user.photo
+          img.user-img(src=user.photo alt="Profile photo" width="72" height="72" loading="lazy")
+        .user-detail
+          if user
+            - var display = user.displayName || user.email || "Member";
+            p Logged in as #{display}
+          if user.email
+            p #{user.email}
+          form.logout-form(method="post" action="/logout")
+            button.logout-btn(type="submit") Logout
+      hr
 
-    p
-      button(type="button" onclick="window.aptatiOpenCookieSettings && window.aptatiOpenCookieSettings()")
-        | Cookie settings
-  else
-    p You’re logged in, but no user record is loaded yet.
 
-  hr
+    //-   p
+    //-     button(type="button" onclick="window.aptatiOpenCookieSettings && window.aptatiOpenCookieSettings()")
+    //-       | Cookie settings
+    //- else
+    //-   p You’re logged in, but no user record is loaded yet.
+
+    //- hr
 
 
-  form(method="post" action="/logout")
-    button(type="submit") Logout
+

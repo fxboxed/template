@@ -16,23 +16,23 @@ mixin wordleGame(opts)
       data-premium-enabled=premiumEnabled ? '1' : '0'
       data-status="playing"
     )
-      header.game__header
+      header.game-header
         h1.game__title Aptati Wordle
-
-        p.game__sub
-          |  Next puzzle in
-          span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00 
-          |  hours
-        //- ✅ Attempts indicator
-        p#wordle-attemptsLine.game__attempts(aria-live="polite")
-          | Attempt:
-          span#wordle-attempts 1/6
+        .under-title
+          p.game-sub
+            |  Next puzzle in
+            span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00 
+            |  hours
+          //- ✅ Attempts indicator
+          p#wordle-attemptsLine.game__attempts(aria-live="polite")
+            | Attempt:
+            span#wordle-attempts 1/6
 
         //- ✅ Streak indicator
         //- p#wordle-streak.game__streak(aria-live="polite") Streak: 0
 
         if premiumEnabled
-          .game__idx
+          .game__id
             label(for="wordle-idx") Puzzle
             select#wordle-idx(name="idx" aria-label="Puzzle index")
               each val in Array.from({length: maxIdx + 1}, (_, i) => i)
@@ -65,11 +65,12 @@ mixin wordleGame(opts)
               each k in ['A','S','D','F','G','H','J','K','L']
                 button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
             .kb__row
-              button.kb__key.wide-key.return(type="button" data-key="Enter" aria-label="Enter") ⏎
+              //- button.kb__key.wide-key.return(type="button" data-key="Enter" aria-label="Enter") ⏎
               each k in ['Z','X','C','V','B','N','M']
                 button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
               button.kb__key.wide-key.backspace(type="button" data-key="Backspace" aria-label="Backspace") ⌫
-
+            .kb__row
+              button.enter-key(type="button" data-key="Enter" aria-label="Enter") Enter
       section.game__footer
         .game__actions
           //- button#wordle-shareBtn.btn(type="button") Share
