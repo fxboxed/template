@@ -1,14 +1,14 @@
 // public/js/games/wordle/index.js (ESM)
 //
-// Previous answers dropdown now fetches canonical answers so it can show every day.
+// Wordle client + Previous Answers overlay dropdown (animated).
 // Requires server endpoint:
 //   POST /api/games/game1/answers
 //   body: { idx, dayKeys: ["YYYY-MM-DD", ...] }
 // Response supported:
-//   { ok:true, items:[{dayKey:"YYYY-MM-DD", answer:"abcde"}, ...] }
-//   OR { ok:true, answers:{ "YYYY-MM-DD":"abcde", ... } }
+//   { ok:true, answers:{ "YYYY-MM-DD":"abcde", ... } }
+//   OR { ok:true, items:[{dayKey:"YYYY-MM-DD", answer:"abcde"}, ...] }
 
-const CLIENT_VERSION = "2026-01-08.v3-prev10-server";
+const CLIENT_VERSION = "2026-01-08.v4-prev10-overlay-anim";
 
 window.__WORDLE_CLIENT_VERSION__ = CLIENT_VERSION;
 
@@ -360,7 +360,7 @@ function normalizeKeyFromEvent(e) {
   return null;
 }
 
-// ---------------- Previous answers dropdown ----------------
+// ---------------- Previous answers (overlay + transitions) ----------------
 
 function parseDayKeyUtc(dayKey) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
@@ -411,16 +411,16 @@ function setPrevAnswersOpen(open) {
   const panel = $("#previous-answers");
   if (!btn || !panel) return;
 
-  panel.hidden = !open;
+  panel.classList.toggle("is-open", !!open);
+  panel.setAttribute("aria-hidden", open ? "false" : "true");
   btn.setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 function isPrevAnswersOpen() {
   const panel = $("#previous-answers");
-  return !!panel && !panel.hidden;
+  return !!panel && panel.classList.contains("is-open");
 }
 
-// Cache by idx+todayDayKey so reopening is instant
 const prevAnswersCache = new Map(); // key -> Map(dayKey->answer)
 
 function cacheKey(todayDayKey, idx) {
@@ -532,17 +532,13 @@ function initPreviousAnswersUi({ dayKey, idx, endpoint }) {
       const data = await apiPreviousAnswers({ endpoint, idx, dayKeys: wanted });
       const map = coerceAnswersMap(data);
 
-      // If server is missing, we still render dates with —
-      if (map.size === 0) {
-        setPrevStatus("Answers need server support (endpoint returned none).");
-      } else {
-        setPrevStatus("");
-      }
+      if (map.size === 0) setPrevStatus("No answers returned.");
+      else setPrevStatus("");
 
       prevAnswersCache.set(k, map);
       renderPreviousAnswersList(dayKey, idx, map);
     } catch {
-      setPrevStatus("Could not load answers (server missing endpoint?).");
+      setPrevStatus("Could not load answers.");
       prevAnswersCache.set(k, new Map());
       renderPreviousAnswersList(dayKey, idx, new Map());
     }
@@ -566,11 +562,10 @@ function initPreviousAnswersUi({ dayKey, idx, endpoint }) {
     setPrevStatus("");
   });
 
-  // initial render: just show dates with — (no request until user opens)
   renderPreviousAnswersList(dayKey, idx, new Map());
 }
 
-// -----------------------------------------------------------
+// -------------------------------------------------------------------------
 
 function initWordle() {
   initCountdown();

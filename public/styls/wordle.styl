@@ -20,6 +20,7 @@
       margin-bottom 14px
       line-height 1
       position relative
+      z-index 3
 
       .game-title
         margin 0
@@ -32,8 +33,16 @@
         text-align center
         border-bottom 1px solid alpha + 20%
 
-      .previous-answer-btn
+      .previous-answers-wrap
+        position relative
         margin-top .6rem
+        width 100%
+        display flex
+        flex-direction column
+        align-items center
+        z-index 50
+
+      .previous-answer-btn
         padding 8px 12px
         border 1px solid alpha
         border-radius 10px
@@ -46,14 +55,33 @@
           transform translateY(1px)
 
       .previous-answers
-        margin-top .6rem
-        width min(380px, 92vw)
+        position absolute
+        top calc(100% + 8px)
+        left 50%
+        transform translateX(-50%) translateY(-8px) scale(.98)
+        opacity 0
+        pointer-events none
+
+        // make it wide so each item stays on one line
+        width min(424px, 96vw)
+
         border 1px solid alpha - 10%
         border-radius 12px
         background alpha - 20%
         color alpha + 60%
         padding 10px
         box-sizing border-box
+        z-index 60
+
+        transition opacity 800ms ease, transform 800ms ease
+
+        will-change opacity, transform
+        box-shadow 0 12px 30px rgba(0,0,0,.18)
+
+        &.is-open
+          opacity 1
+          transform translateX(-50%) translateY(0) scale(1)
+          pointer-events auto
 
         .previous-answers-head
           display flex
@@ -82,20 +110,32 @@
           li
             display flex
             justify-content space-between
-            align-items baseline
+            align-items center
+            flex-wrap nowrap
+            gap 12px
             padding 6px 8px
             border-radius 10px
             background rgba(alpha - 70%, 0.18)
 
+            // force a single-line row
+            white-space nowrap
+
             .prev-date
               opacity .9
               font-variant-numeric tabular-nums
+              white-space nowrap
+              overflow hidden
+              text-overflow ellipsis
+              min-width 0
+              flex 1 1 auto
 
             .prev-answer
               font-weight 800
               letter-spacing .08em
               text-transform uppercase
               font-variant-numeric tabular-nums
+              white-space nowrap
+              flex 0 0 auto
 
       .sub-heading
         position relative
@@ -129,6 +169,8 @@
         display grid
         gap 18px
         align-items start
+        position relative
+        z-index 1
 
         .wordle-board
           display grid
@@ -311,6 +353,10 @@
 @media (prefers-color-scheme: dark)
   .wordle-game-wrap
     .wordle-game
+      .game-header
+        .previous-answers
+          box-shadow 0 12px 30px rgba(0,0,0,.35)
+
       .game-footer
         .share-panel
           border 1px solid rgba(255,255,255,0.14)

@@ -4,3 +4,4 @@
 
 after entering each row a toast will appear depending upon line total
 the toast will be visible for 1.5s
+I will add the different toasts. For now show toast

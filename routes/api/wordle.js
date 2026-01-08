@@ -14,6 +14,20 @@ const router = express.Router();
 const WORDLE_SECRET = process.env.WORDLE_SECRET || "dev-secret-change-me";
 const isProd = process.env.NODE_ENV === "production";
 
+function isValidDayKey(dayKey) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(dayKey || ""));
+}
+
+function dayKeyUtcMs(dayKey) {
+  // dayKey: YYYY-MM-DD -> ms at UTC midnight
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dayKey || ""));
+  if (!m) return NaN;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  return Date.UTC(y, mo, d, 0, 0, 0);
+}
+
 router.post("/guess", (req, res) => {
   try {
     const { dayKey, idx = 0, guess } = req.body || {};
@@ -54,7 +68,6 @@ router.post("/guess", (req, res) => {
     return res.json({
       ok: true,
       valid: true,
-      // If not in list (dev only), tell the client as a warning (optional)
       warning: !inList ? "not_in_word_list_dev_scored" : "",
       dayKey: serverDayKey,
       idx: 0,
@@ -62,6 +75,68 @@ router.post("/guess", (req, res) => {
       guess: g,
       result,
       isSolved: g === answer,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ ok: false, reason: "server_error" });
+  }
+});
+
+// NEW: return canonical answers for previous days.
+// Client sends: { idx: 0, dayKeys: ["YYYY-MM-DD", ...] }
+// Server returns: { ok:true, serverDayKey, answers: { "YYYY-MM-DD": "apple", ... } }
+//
+// Rules:
+// - idx is locked to 0 (same as v1 guess lock)
+// - only returns answers for past days (strictly before serverDayKey)
+// - caps request size (10 by default; allows a bit extra safely)
+router.post("/answers", (req, res) => {
+  try {
+    const { idx = 0, dayKeys = [] } = req.body || {};
+
+    const serverDayKey = getDayKeyUTC(new Date());
+
+    // v1 lock: idx=0 only
+    if (Number(idx) !== 0) {
+      return res
+        .status(403)
+        .json({ ok: false, reason: "locked_v1_idx0", serverDayKey });
+    }
+
+    if (!Array.isArray(dayKeys)) {
+      return res.json({ ok: false, reason: "bad_format_dayKeys", serverDayKey });
+    }
+
+    // Limit + sanitize
+    const wanted = dayKeys
+      .map((d) => String(d || "").trim())
+      .filter((d) => isValidDayKey(d))
+      .slice(0, 20);
+
+    const serverMs = dayKeyUtcMs(serverDayKey);
+    const { answers } = getWordlists();
+
+    const out = {};
+
+    for (const dk of wanted) {
+      const dkMs = dayKeyUtcMs(dk);
+
+      // only past days; never reveal today's or future answers
+      if (!Number.isFinite(dkMs) || dkMs >= serverMs) continue;
+
+      out[dk] = selectAnswer({
+        dayKey: dk,
+        idx: 0,
+        secret: WORDLE_SECRET,
+        answers,
+      });
+    }
+
+    return res.json({
+      ok: true,
+      serverDayKey,
+      idx: 0,
+      answers: out,
     });
   } catch (e) {
     console.error(e);

@@ -19,17 +19,21 @@ mixin wordleGame(opts)
       header.game-header
         h1.game-title Aptati Wordle
 
-        button.previous-answer-btn(
-          type="button"
-          aria-expanded="false"
-          aria-controls="previous-answers"
-        ) Previous answers
+        .previous-answers-wrap
+          button.previous-answer-btn(
+            type="button"
+            aria-expanded="false"
+            aria-controls="previous-answers"
+          ) Previous answers
 
-        .previous-answers#previous-answers(hidden aria-label="Previous 10 days answers")
-          .previous-answers-head
-            span.previous-answers-title Previous 10 days
-          p.previous-answers-status(hidden)
-          ul.previous-answers-list
+          .previous-answers#previous-answers(
+            aria-label="Previous 10 days answers"
+            aria-hidden="true"
+          )
+            .previous-answers-head
+              span.previous-answers-title Previous 10 days
+            p.previous-answers-status(hidden)
+            ul.previous-answers-list
 
         .sub-heading
           p.timer-line
@@ -40,6 +44,9 @@ mixin wordleGame(opts)
           p#wordle-attemptsLine.attempts-line(aria-live="polite")
             | Attempt:
             span#wordle-attempts 0/6
+
+        //- ✅ Streak indicator
+        //- p#wordle-streak.streak-line(aria-live="polite") Streak: 0
 
         if premiumEnabled
           .puzzle-picker
@@ -89,6 +96,8 @@ mixin wordleGame(opts)
         .actions
           button#wordle-resetBtn.btn.ghost(type="button") Reset Game
           button#wordle-helpBtn.btn.ghost(type="button") Help
+
+        //- p#wordle-toast.toast-line(aria-live="polite")
 
         .share-panel#wordle-sharePanel(hidden)
           h2.share-title Share

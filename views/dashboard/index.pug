@@ -1,72 +1,111 @@
-extends ../layout.pug
+//- views/partials/wordle-game.pug
 
-block head
+mixin wordleGame(opts)
+  - const gameKey = (opts && opts.gameKey) || 'wordle'
+  - const idx = (opts && typeof opts.idx === 'number') ? opts.idx : 0
+  - const maxIdx = (opts && typeof opts.maxIdx === 'number') ? opts.maxIdx : 49
+  - const premiumEnabled = !!(opts && opts.premiumEnabled)
+  - const dayKey = (opts && opts.dayKey) ? opts.dayKey : ''
+  .wordle-game-wrap
+    .game.wordle-game(
+      data-game-key=gameKey
+      data-day-key=dayKey
+      data-idx=idx
+      data-max-idx=maxIdx
+      data-premium-enabled=premiumEnabled ? '1' : '0'
+      data-status="playing"
+      data-prev-answers-endpoint="/api/games/game1/answers"
+    )
+      header.game-header
+        h1.game-title Aptati Wordle
 
-block content
-  .dashboard-wrap
-    h1.txt-center Dashboard
-    .play-btns
-      button.play-btn Wordle
-      button.play-btn Quiz
-      button.play-btn Challenges
-    .user-details
+        .previous-answers-wrap
+          button.previous-answer-btn(
+            type="button"
+            aria-expanded="false"
+            aria-controls="previous-answers"
+          ) Previous answers
 
-      .awards-wrap 
-        h3.txt-center Your Awards
-        //- for wordle awards
-        .award-btns
-          button.award-btn All
-          button.award-btn Wordle
-          button.award-btn Quiz
-          button.award-btn Challenges
-        .awards-grid
-          .award 
-            .badge 🏆
-            p Grand Master: 
-            span 0
+          .previous-answers#previous-answers(
+            aria-label="Previous 10 days answers"
+            aria-hidden="true"
+          )
+            .previous-answers-head
+              span.previous-answers-title Previous 10 days
+            p.previous-answers-status(hidden)
+            ul.previous-answers-list
 
-          .award 
-            .badge 🥈
-            p Expert: 
-            span 0
+        .sub-heading
+          p.timer-line
+            | Next puzzle in
+            span#wordle-countdown.countdown(aria-live="polite") 00:00:00
+            | hours
 
-          .award 
-            .badge 🥉
-            p Challenger:
-            span 0
-          .award 
-            .badge 🔍
-            p Novice:
-            span 0
-          .award 
-            .badge 🎗️
-            p Absolute Beginner: 
-            span 0
-          .award 
-            .badge 🏅
-            p Not A Damned Clue: 
-            span 0
-      .user
-        if user.photo
-          img.user-img(src=user.photo alt="Profile photo" width="72" height="72" loading="lazy")
-        .user-detail
-          if user
-            - var display = user.displayName || user.email || "Member";
-            p Logged in as #{display}
-          if user.email
-            p #{user.email}
-          form.logout-form(method="post" action="/logout")
-            button.logout-btn(type="submit") Logout
-      hr
+          p#wordle-attemptsLine.attempts-line(aria-live="polite")
+            | Attempt:
+            span#wordle-attempts 0/6
 
+        //- ✅ Streak indicator
+        //- p#wordle-streak.streak-line(aria-live="polite") Streak: 0
 
-    //-   p
-    //-     button(type="button" onclick="window.aptatiOpenCookieSettings && window.aptatiOpenCookieSettings()")
-    //-       | Cookie settings
-    //- else
-    //-   p You’re logged in, but no user record is loaded yet.
+        if premiumEnabled
+          .puzzle-picker
+            label(for="wordle-idx") Puzzle
+            select#wordle-idx(name="idx" aria-label="Puzzle index")
+              each val in Array.from({length: maxIdx + 1}, (_, i) => i)
+                option(value=val selected=(val === idx))= val
+        else
+          input(type="hidden" id="wordle-idx" value=idx)
 
-    //- hr
+      section.game-stage
+        .wordle
+          .wordle-board#wordle-board(role="grid" aria-label="Word grid")
+            #running-commentary.running-commentary
+              p RUNNING COMMENTARY TOAST.
 
+            - const rows = 6
+            - const cols = 5
+            each r in Array.from({length: rows}, (_, i) => i)
+              .wordle-row(role="row" data-row=r)
+                each c in Array.from({length: cols}, (_, i) => i)
+                  .wordle-tile(
+                    role="gridcell"
+                    aria-label=`Row ${r+1} Column ${c+1}`
+                    data-row=r
+                    data-col=c
+                    data-state="empty"
+                    style=`--i:${c}`
+                  )
 
+          .wordle-keyboard#wordle-keyboard(aria-label="Keyboard")
+            .kb-row
+              each k in ['Q','W','E','R','T','Y','U','I','O','P']
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb-row
+              each k in ['A','S','D','F','G','H','J','K','L']
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb-row
+              each k in ['Z','X','C','V','B','N','M']
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+              button.kb-key.backspace(type="button" data-key="Backspace" aria-label="Backspace") ⌫
 
+            .kb-row
+              button.enter-key(type="button" data-key="Enter" aria-label="Enter") Enter
+
+      section.game-footer
+        .actions
+          button#wordle-resetBtn.btn.ghost(type="button") Reset Game
+          button#wordle-helpBtn.btn.ghost(type="button") Help
+
+        //- p#wordle-toast.toast-line(aria-live="polite")
+
+        .share-panel#wordle-sharePanel(hidden)
+          h2.share-title Share
+          pre#wordle-shareText.share-text(aria-label="Share text")
+
+          .share-actions
+            button#wordle-copyBtn.btn(type="button") Copy result
+            button#wordle-copyLinkBtn.btn.ghost(type="button") Copy link
+            button#wordle-nativeShareBtn.btn.ghost(type="button") Share…
+            button#wordle-fbBtn.btn.ghost(type="button") Facebook
+            button#wordle-closeShareBtn.btn.ghost(type="button") Close
