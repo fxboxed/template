@@ -62,7 +62,6 @@
         opacity 0
         pointer-events none
 
-        // make it wide so each item stays on one line
         width min(424px, 96vw)
 
         border 1px solid alpha - 10%
@@ -74,7 +73,6 @@
         z-index 60
 
         transition opacity 800ms ease, transform 800ms ease
-
         will-change opacity, transform
         box-shadow 0 12px 30px rgba(0,0,0,.18)
 
@@ -116,8 +114,6 @@
             padding 6px 8px
             border-radius 10px
             background rgba(alpha - 70%, 0.18)
-
-            // force a single-line row
             white-space nowrap
 
             .prev-date
@@ -179,6 +175,32 @@
           user-select none
           touch-action manipulation
           position relative
+
+          .wordle-row-toast-host
+            position absolute
+            left 1.1rem
+            right 1.1rem
+            top 0
+            z-index 6
+            pointer-events none
+
+          .wordle-row-toast
+            opacity 0
+            transform translateX(-18px) translateY(-50%)
+            transition opacity 180ms ease, transform 180ms ease
+            will-change opacity, transform
+            background alpha - 20%
+            color alpha + 60%
+            border 1px solid alpha - 10%
+            border-radius 12px
+            padding 10px 12px
+            text-align center
+            box-shadow 0 10px 24px rgba(0,0,0,.18)
+            min-height 3rem
+
+            &.is-show
+              opacity 1
+              transform translateX(0) translateY(-50%)
 
           #running-commentary.running-commentary
             position absolute
@@ -356,6 +378,12 @@
       .game-header
         .previous-answers
           box-shadow 0 12px 30px rgba(0,0,0,.35)
+
+      .game-stage
+        .wordle
+          .wordle-board
+            .wordle-row-toast
+              box-shadow 0 12px 30px rgba(0,0,0,.35)
 
       .game-footer
         .share-panel

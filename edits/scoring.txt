@@ -1,7 +1,10 @@
 1 correct tile = 2
 1 present tile = 1
 1 absent tile = 0
-
+there shall be 10 toast, number 10(highest) to 1
 after entering each row a toast will appear depending upon line total
 the toast will be visible for 1.5s
-I will add the different toasts. For now show toast
+I will add the different toasts. For now show placeholder text
+preferrably the toast will slide in from the left over the line being entered
+if not show all  toasts at the top of the tiles
+Request any sheet to be edited

@@ -1,14 +1,14 @@
 // public/js/games/wordle/index.js (ESM)
 //
 // Wordle client + Previous Answers overlay dropdown (animated).
-// Requires server endpoint:
-//   POST /api/games/game1/answers
-//   body: { idx, dayKeys: ["YYYY-MM-DD", ...] }
-// Response supported:
-//   { ok:true, answers:{ "YYYY-MM-DD":"abcde", ... } }
-//   OR { ok:true, items:[{dayKey:"YYYY-MM-DD", answer:"abcde"}, ...] }
+// Row-score toast (10 separate toasts):
+// - correct tile = 2
+// - present tile = 1
+// - absent tile = 0
+// Total range 0..10 -> tier 1..10 (0 clamps to 1)
+// Shows the matching tier toast element for 1.5s, sliding in from the left over the row.
 
-const CLIENT_VERSION = "2026-01-08.v4-prev10-overlay-anim";
+const CLIENT_VERSION = "2026-01-08.v6-10separate-row-toasts";
 
 window.__WORDLE_CLIENT_VERSION__ = CLIENT_VERSION;
 
@@ -18,8 +18,10 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const WORD_LEN = 5;
 const MAX_ATTEMPTS = 6;
 
-const STATE_RANK = { empty: 0, absent: 1, present: 2, correct: 3 };
+const STATE_RANK = { empty: 0, absent: 0, present: 1, correct: 2 };
 const EMOJI = { absent: "⬛", present: "🟨", correct: "🟩" };
+
+const ROW_TOAST_MS = 2500;
 
 const storage = {
   get(key) {
@@ -360,6 +362,92 @@ function normalizeKeyFromEvent(e) {
   return null;
 }
 
+// ---------------- Row score toasts (10 separate elements) ----------------
+
+let rowToastTimer = null;
+
+function scoreRowFromStates(states) {
+  // correct=2, present=1, absent=0
+  let total = 0;
+  for (const s of states || []) {
+    if (s === "correct") total += 2;
+    else if (s === "present") total += 1;
+    else total += 0;
+  }
+  return total; // 0..10
+}
+
+function toastTierFromScore(score) {
+  // only 1..10 exist; clamp 0 -> 1
+  const n = Number(score) || 0;
+  return Math.max(1, Math.min(10, n));
+}
+
+function rowToastHost() {
+  return $("#wordle-rowToastHost");
+}
+
+function allRowToasts() {
+  const host = rowToastHost();
+  if (!host) return [];
+  return $$(".wordle-row-toast", host);
+}
+
+function toastElForTier(tier) {
+  const host = rowToastHost();
+  if (!host) return null;
+  return host.querySelector(`.wordle-row-toast[data-tier="${tier}"]`);
+}
+
+function hideAllRowToasts() {
+  for (const el of allRowToasts()) el.classList.remove("is-show");
+}
+
+function positionRowToastHostOverRow(row) {
+  const host = rowToastHost();
+  const board = $("#wordle-board");
+  const rEl = rowEl(row);
+  if (!host || !board) return;
+
+  // Fallback: top of tiles
+  let topPx = 0;
+
+  try {
+    if (rEl) {
+      const boardRect = board.getBoundingClientRect();
+      const rowRect = rEl.getBoundingClientRect();
+      const centerY = rowRect.top - boardRect.top + rowRect.height / 2;
+      if (Number.isFinite(centerY)) topPx = Math.max(0, centerY);
+    }
+  } catch {}
+
+  host.style.top = `${topPx}px`;
+}
+
+function showRowToast({ row, tier }) {
+  const el = toastElForTier(tier);
+  if (!el) return;
+
+  if (rowToastTimer) {
+    clearTimeout(rowToastTimer);
+    rowToastTimer = null;
+  }
+
+  positionRowToastHostOverRow(row);
+
+  // show only the matching toast
+  hideAllRowToasts();
+
+  // restart animation reliably
+  el.classList.remove("is-show");
+  void el.offsetWidth;
+  el.classList.add("is-show");
+
+  rowToastTimer = setTimeout(() => {
+    el.classList.remove("is-show");
+  }, ROW_TOAST_MS);
+}
+
 // ---------------- Previous answers (overlay + transitions) ----------------
 
 function parseDayKeyUtc(dayKey) {
@@ -421,7 +509,7 @@ function isPrevAnswersOpen() {
   return !!panel && panel.classList.contains("is-open");
 }
 
-const prevAnswersCache = new Map(); // key -> Map(dayKey->answer)
+const prevAnswersCache = new Map();
 
 function cacheKey(todayDayKey, idx) {
   return `${todayDayKey}::${idx}`;
@@ -666,6 +754,11 @@ function initWordle() {
       renderBoard(st);
       saveState(puzId, st);
 
+      // ✅ 10 separate toasts (tier = score 1..10)
+      const score = scoreRowFromStates(result); // 0..10
+      const tier = toastTierFromScore(score);
+      showRowToast({ row, tier });
+
       if (data.isSolved) {
         st.status = "won";
 
@@ -793,6 +886,16 @@ function initWordle() {
     renderBoard(st);
     saveState(puzId, st);
     toast("Reset locally.");
+  });
+
+  // Keep toast aligned if window changes mid-toast (best effort).
+  window.addEventListener("resize", () => {
+    const host = rowToastHost();
+    if (!host) return;
+    const showing = host.querySelector(".wordle-row-toast.is-show");
+    if (!showing) return;
+    const lastRow = Math.max(0, Math.min(MAX_ATTEMPTS - 1, st.guesses.length - 1));
+    positionRowToastHostOverRow(lastRow);
   });
 }
 

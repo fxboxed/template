@@ -17,7 +17,8 @@ mixin wordleGame(opts)
       data-prev-answers-endpoint="/api/games/game1/answers"
     )
       header.game-header
-        h1.game-title Aptati Wordle
+        h1.game-title Aptati Wankers Wordle
+        p No cheating BOGGIE MARSH
 
         .previous-answers-wrap
           button.previous-answer-btn(
@@ -60,6 +61,20 @@ mixin wordleGame(opts)
       section.game-stage
         .wordle
           .wordle-board#wordle-board(role="grid" aria-label="Word grid")
+            //- Row-score toasts (0..10)
+            #wordle-rowToastHost.wordle-row-toast-host(role="status" aria-live="polite" aria-atomic="true")
+              .wordle-row-toast(data-tier="10") Perfect! 10/10. The grand master has arrived
+              .wordle-row-toast(data-tier="9") 9/10 About as good as it gets for a!
+              .wordle-row-toast(data-tier="8") 8/10 Getting there, albeit about as quick as a snail
+              .wordle-row-toast(data-tier="7") 7/10 You're not too shabby at this are you?
+              .wordle-row-toast(data-tier="6") 6/10 Think you're smart eh?
+              .wordle-row-toast(data-tier="5") 5/10 Found a dictionary then?
+              .wordle-row-toast(data-tier="4") 4/10 Tool the sharpest box in the not
+              .wordle-row-toast(data-tier="3") 3/10 Soon be able to walk upright
+              .wordle-row-toast(data-tier="2") 2/10 Ever heard of a dictionary?
+              .wordle-row-toast(data-tier="1") 1/10 Hello knuckle scraper
+              .wordle-row-toast(data-tier="0") 0/10 You pathetic numpty
+
             #running-commentary.running-commentary
               p RUNNING COMMENTARY TOAST.
 
