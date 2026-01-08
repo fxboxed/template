@@ -1,345 +1,346 @@
 // public/styls/wordle.styl
-// Fix: empty/typing tiles must be readable even if global CSS sets color white.
-// We scope variables under and set empty-tile text explicitly.
+
 .wordle-game-wrap
   background alpha - 40%
   width fit-content
   margin 0rem auto
   padding 0
-  //opacity 0
-.game--wordle
-  // Light mode defaults
-  // --w-empty-bg: rgba(0,0,0,0.03)
-  // --w-empty-border: rgba(0,0,0,0.22)
-  // --w-empty-text: rgba(0,0,0,0.92)
 
-  // --w-absent-bg: #3a3a3c
-  // --w-absent-border: #3a3a3c
-
-  // --w-present-bg: #b59f3b
-  // --w-present-border: #b59f3b
-
-  // --w-correct-bg: #538d4e
-  // --w-correct-border: #538d4e
-
-  // --w-key-bg: rgba(0,0,0,0.06)
-  // --w-key-border: rgba(0,0,0,0.14)
-  // --w-key-text: rgba(0,0,0,0.92)
-  max-width: 424px
-  margin 0 auto
-  border-radius: 16px
-  width: 100vw
-  max-width 424px
-  //border 1px solid red
-
-@media (prefers-color-scheme: dark)
-  // .game--wordle
-  //   --w-empty-bg: rgba(255,255,255,0.06)
-  //   --w-empty-border: rgba(255,255,255,0.22)
-  //   --w-empty-text: rgba(255,255,255,0.92)
-
-  //   --w-key-bg: rgba(255,255,255,0.10)
-  //   --w-key-border: rgba(255,255,255,0.14)
-  //   --w-key-text: rgba(255,255,255,0.92)
-
-.game__header
-  display: flex
-  flex-direction: column
-  align-items center
-  0 //gap: 4px
-  margin-bottom: 14px
-  line-height 1
-
-  //background green //alpha - 40%
-.under-title  
-  font-size: clamp(16px, 2.2vw, 24px)
-  margin 0 auto
-  padding 1rem
-  //border 1px solid blue
-  text-align center
-  .game-sub 
-    //border 2px solid red
+  .wordle-game
+    max-width 424px
     margin 0 auto
-#wordle-attemptsLine.game__attempts
-  //color red
-  //border 1px solid green
-  margin 0 auto 
-.game__title
-  margin: 0
-  font-size: clamp(22px, 2.4vw, 34px)
-  line-height: 1
-  height 4rem
-  display flex
-  align-items center
-  justify-content center
-  //padding-bottom 8px
-  text-align: center
-  border-bottom: 1px solid alpha + 20%
-.game__footer 
-  padding 1rem
-.game__sub,
-.game__attempts,
-.game__streak
-  margin: 0
-  opacity: 0.92
-  margin auto
+    border-radius 16px
+    width 100vw
 
-.game__countdown
-  margin-left: 8px
-  font-variant-numeric: tabular-nums
+    .game-header
+      display flex
+      flex-direction column
+      align-items center
+      gap 0
+      margin-bottom 14px
+      line-height 1
+      position relative
 
-.game__attempts span
-  margin-left: 8px
-  font-variant-numeric: tabular-nums
+      .game-title
+        margin 0
+        font-size clamp(22px, 2.4vw, 34px)
+        line-height 1
+        height 4rem
+        display flex
+        align-items center
+        justify-content center
+        text-align center
+        border-bottom 1px solid alpha + 20%
 
-.wordle
-  display: grid
-  gap: 18px
-  align-items: start
+      .previous-answer-btn
+        margin-top .6rem
+        padding 8px 12px
+        border 1px solid alpha
+        border-radius 10px
+        background alpha - 10%
+        color alpha + 60%
+        cursor pointer
+        width fit-content
 
-.wordle__board
-  display: grid
-  gap: 8px
-  justify-content: center
-  user-select: none
-  touch-action: manipulation
+        &:active
+          transform translateY(1px)
 
-.wordle__row
-  display: grid
-  grid-template-columns: repeat(5, 1fr)
-  gap: 8px
+      .previous-answers
+        margin-top .6rem
+        width min(380px, 92vw)
+        border 1px solid alpha - 10%
+        border-radius 12px
+        background alpha - 20%
+        color alpha + 60%
+        padding 10px
+        box-sizing border-box
 
+        .previous-answers-head
+          display flex
+          justify-content space-between
+          align-items center
+          margin-bottom 8px
 
-// Tiles
-.wordle__tile
-  width: 4.3rem //clamp(44px, 10vw, 56px)
-  height:4.3rem //clamp(44px, 10vw, 56px)
-  display: grid
-  place-items: center
-  border-radius: 10px
-  border: 2px solid var(--w-empty-border)
-  background: alpha //var(--w-empty-bg)
-  font-weight: 700
-  font-size: 0
-  text-transform: uppercase
-  line-height: 1
-  letter-spacing: 0.5px
-  animation: fontGrow 2s ease-out forwards
-@keyframes fontGrow
-  0%
-    font-size: 5rem
-  50%
-    font-size: 0rem
-  100%
-    font-size: clamp(32px, 6vw, 48px)
+          .previous-answers-title
+            font-weight 700
+            opacity .95
 
-.wordle__tile[data-state="empty"],
-.wordle__tile[data-state="absent"],
-.wordle__tile[data-state="present"],
-.wordle__tile[data-state="correct"]
-  animation-delay: 1s
+        .previous-answers-status
+          margin 0 0 8px 0
+          padding 6px 8px
+          border-radius 10px
+          background rgba(alpha - 70%, 0.18)
+          opacity .95
 
+        .previous-answers-list
+          list-style none
+          padding 0
+          margin 0
+          display grid
+          gap 6px
 
-// ✅ empty tiles: force readable text (protect against global `color: #fff`)
-.wordle__tile[data-state="empty"]
-  //background: red //alpha //+ 20% //var(--w-empty-bg)
-  //border-color: var(--w-empty-border)
-  color pink
-  //color: var(--w-empty-text) !important
-  animation: fontGrow 2s ease-out forwards
-  border none
+          li
+            display flex
+            justify-content space-between
+            align-items baseline
+            padding 6px 8px
+            border-radius 10px
+            background rgba(alpha - 70%, 0.18)
 
-// result tiles
-.wordle__tile[data-state="absent"]
-  background rgba(alpha - 70%, 0.4)
-  //border-color: alpha - 20% //var(--w-absent-border)
-  color: alpha  !important
-  border none
-  animation: fontGrow 2s ease-out forwards
-.wordle__tile[data-state="present"]
-  background: rgba(beta, 0.7)
-   //orange + 60%//-present-bg)
-  //border-color: beta - 20%  //var(--w-present-border)
-  color: alpha + 60%  !important
-  animation: fontGrow 2s ease-out forwards
-.wordle__tile[data-state="correct"]
-  background: rgba(green, .5) //var(--w-correct-bg)
-  //border-color: var(--w-correct-border)
-  border none
-  color: alpha + 60%  !important
-  //rder 1px solid orange
-  //ckground red
-  animation: fontGrow 2s infinate //
-// Keyboard
-.wordle__keyboard
-  display: grid
-  gap: 6px
-  justify-content: center
-  //border 1px solid #000
+            .prev-date
+              opacity .9
+              font-variant-numeric tabular-nums
 
-.kb__row
-  display: flex
-  //gap: 5px
-  justify-content: space-around //space-between //center
-  //border 1px solid blue
-  max-width 400px // 100%
-  width 100vw
-.kb__key
-  appearance: none
-  //border: 1px solid var(--w-key-border)
-  background: alpha //var(--w-key-bg)
-  color: alpha + 60% //var(--w-key-text)
-  border-radius: 50% //12px
-  padding: 8px 8px
-  max-width: 32px
-  max-height: 32px //46
-  font-size 1rem
-  height 30px
-  width 30px
+            .prev-answer
+              font-weight 800
+              letter-spacing .08em
+              text-transform uppercase
+              font-variant-numeric tabular-nums
 
-  font-weight: 700
-  cursor: pointer
-  touch-action: manipulation
-  user-select: none
-  display flex 
-  align-items center
-  justify-content center
-  transition all 1s ease-in-out
+      .sub-heading
+        position relative
+        display flex
+        flex-direction column
+        align-items center
+        justify-content center
+        width 100%
 
+      .timer-line,
+      .attempts-line,
+      .streak-line
+        margin 0
+        opacity 0.92
+        margin auto
 
-.enter-key
-  //background alpha - 10%
-  border 1px solid alpha
-  width 100% // 10rem
-  padding 8px 12px
-  color alpha + 80%
-  margin-top .6rem
-  width 100%
-.backspace
-  background alpha - 20%
-  width fit-content
-  border-radius 0
-  border 1px solid alpha - 20%
-  padding 2px 8px
+      .countdown
+        margin-left 8px
+        font-variant-numeric tabular-nums
 
-.kb__key:active
-  transform: translateY(1px)
+      .attempts-line span
+        margin-left 8px
+        font-variant-numeric tabular-nums
 
-.kb__key[data-state="absent"]
-  background rgba(alpha - 70%, 0.4)
-  //border-color: alpha - 20% //var(--w-absent-border)
-  color: alpha  !important
+      .puzzle-picker
+        label
+          margin-right 8px
 
+    .game-stage
+      .wordle
+        display grid
+        gap 18px
+        align-items start
 
-.kb__key[data-state="present"]
-  background: rgba(beta, 0.7)
-  border none
-  color: alpha + 50%//- 10%
+        .wordle-board
+          display grid
+          gap 8px
+          justify-content center
+          user-select none
+          touch-action manipulation
+          position relative
 
-.kb__key[data-state="correct"]
-  background: rgba(green, .5)
-  border-color: none
-  color: alpha + 80%
+          #running-commentary.running-commentary
+            position absolute
+            top 0
+            left 1.3rem
+            right 1.3rem
+            min-height 5rem
+            padding 1rem
+            margin 0 auto
+            background alpha - 20%
+            color alpha + 50%
+            border-radius 8px
+            text-align center
+            display none
+            z-index 2
 
-// Footer / share
-.game__footer
-  margin-top: 14px
-  display: grid
-  gap: 10px
+          .wordle-row
+            display grid
+            grid-template-columns repeat(5, 1fr)
+            gap 8px
 
-.game__actions
-  display: flex
-  justify-content: center
-  gap: 10px
-  flex-wrap: wrap
-  color: alpha
-  //background blue
-.game__id
-  background red
-  
-button#wordle-resetBtn.btn.btn--ghost, button#wordle-helpBtn.btn.btn--ghost
-    //background blue
-    padding 8px 12px
-    border 1px solid alpha //- 10%
-    border-radius 8px
-    color alpha + 40% //- 20%
-.game__toast
-  min-height: 20px
-  font-size: 14px
-  opacity: 0.95
+            .wordle-tile
+              width 4.3rem
+              height 4.3rem
+              display grid
+              place-items center
+              border-radius 10px
+              border 2px solid var(--w-empty-border)
+              background alpha
+              font-weight 700
+              font-size 2rem
+              text-transform uppercase
+              line-height 1
+              letter-spacing 0.5px
 
-.share
-  margin-top: 10px
-  padding: 12px
-  border-radius: 14px
-  border: 1px solid rgba(0,0,0,0.14)
-  background: rgba(0,0,0,0.04)
+              &[data-state="empty"]
+                color alpha + 60%
+                border none
+
+              &[data-state="absent"]
+                background rgba(alpha - 70%, 0.4)
+                color alpha !important
+                border none
+
+              &[data-state="present"]
+                background rgba(beta, 0.7)
+                color alpha + 60% !important
+                border none
+
+              &[data-state="correct"]
+                background rgba(green, .5)
+                color alpha + 60% !important
+                border none
+
+          &.is-revealing .wordle-tile
+            transform-style preserve-3d
+            animation wordleFlip 0.52s ease-in-out
+            animation-delay calc(var(--i, 0) * 80ms)
+
+        .wordle-keyboard
+          display grid
+          gap 6px
+          justify-content center
+
+          .kb-row
+            display flex
+            justify-content space-around
+            max-width 400px
+            width 100vw
+
+            .kb-key
+              appearance none
+              background alpha
+              color alpha + 60%
+              border-radius 50%
+              padding 8px 8px
+              max-width 32px
+              max-height 32px
+              font-size 1rem
+              height 30px
+              width 30px
+              font-weight 700
+              cursor pointer
+              touch-action manipulation
+              user-select none
+              display flex
+              align-items center
+              justify-content center
+              transition all 1s ease-in-out
+
+              &:active
+                transform translateY(1px)
+
+              &[data-state="absent"]
+                background rgba(alpha - 70%, 0.4)
+                color alpha !important
+
+              &[data-state="present"]
+                background rgba(beta, 0.7)
+                border none
+                color alpha + 50%
+
+              &[data-state="correct"]
+                background rgba(green, .5)
+                border-color none
+                color alpha + 80%
+
+              &.backspace
+                background alpha - 20%
+                width fit-content
+                border-radius 0
+                border 1px solid alpha - 20%
+                padding 2px 8px
+
+          .enter-key
+            border 1px solid alpha
+            padding 8px 12px
+            color alpha + 80%
+            margin-top .6rem
+            width 100%
+
+    .game-footer
+      padding 1rem
+      margin-top 14px
+      display grid
+      gap 10px
+
+      .actions
+        display flex
+        justify-content center
+        gap 10px
+        flex-wrap wrap
+        color alpha
+
+      .ghost
+        padding 8px 12px
+        border 1px solid alpha
+        border-radius 8px
+        color alpha + 40%
+
+      .toast-line
+        min-height 20px
+        font-size 14px
+        opacity 0.95
+
+      .share-panel
+        margin-top 10px
+        padding 12px
+        border-radius 14px
+        border 1px solid rgba(0,0,0,0.14)
+        background rgba(0,0,0,0.04)
+
+        .share-title
+          margin 0 0 8px 0
+
+        .share-text
+          margin 0
+          white-space pre-wrap
+          word-break break-word
+          padding 10px
+          border-radius 12px
+          border 1px solid rgba(0,0,0,0.12)
+          background rgba(0,0,0,0.06)
+          font-variant-numeric tabular-nums
+
+        .share-actions
+          margin-top 10px
+          display flex
+          gap 10px
+          flex-wrap wrap
 
 @media (prefers-color-scheme: dark)
-  .share
-    border: 1px solid rgba(255,255,255,0.14)
-    background: rgba(255,255,255,0.06)
+  .wordle-game-wrap
+    .wordle-game
+      .game-footer
+        .share-panel
+          border 1px solid rgba(255,255,255,0.14)
+          background rgba(255,255,255,0.06)
 
-.share__title
-  margin: 0 0 8px 0
+          .share-text
+            border 1px solid rgba(255,255,255,0.12)
+            background rgba(0,0,0,0.25)
 
-.share__text
-  margin: 0
-  white-space: pre-wrap
-  word-break: break-word
-  padding: 10px
-  border-radius: 12px
-  border: 1px solid rgba(0,0,0,0.12)
-  background: rgba(0,0,0,0.06)
-  font-variant-numeric: tabular-nums
-
-@media (prefers-color-scheme: dark)
-  .share__text
-    border: 1px solid rgba(255,255,255,0.12)
-    background: rgba(0,0,0,0.25)
-
-.share__actions
-  margin-top: 10px
-  display: flex
-  gap: 10px
-  flex-wrap: wrap
-
-// Animations
 @keyframes wordleShake
   0%
-    transform: translateX(0)
+    transform translateX(0)
   20%
-    transform: translateX(-6px)
+    transform translateX(-6px)
   40%
-    transform: translateX(6px)
+    transform translateX(6px)
   60%
-    transform: translateX(-6px)
+    transform translateX(-6px)
   80%
-    transform: translateX(6px)
+    transform translateX(6px)
   100%
-    transform: translateX(0)
+    transform translateX(0)
 
-.wordle__row.is-shake
-  animation: wordleShake 0.42s ease-in-out
+.wordle-row.is-shake
+  animation wordleShake 0.42s ease-in-out
 
 @keyframes wordleFlip
   0%
-    transform: rotateX(0deg)
+    transform rotateX(0deg)
   50%
-    transform: rotateX(90deg)
+    transform rotateX(90deg)
   100%
-    transform: rotateX(0deg)
-
-.wordle__row.is-revealing .wordle__tile
-  transform-style: preserve-3d
-  animation: wordleFlip 0.52s ease-in-out
-  animation-delay: calc(var(--i, 0) * 80ms)
-
-// @media (max-width: 420px)
-//   .kb__key
-//     height: 44px
-//     padding: 8px 8px
-//     border-radius: 11px
-
-//   .kb__key--wide
-//     min-width: 64px
+    transform rotateX(0deg)

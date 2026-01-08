@@ -6,33 +6,43 @@ mixin wordleGame(opts)
   - const maxIdx = (opts && typeof opts.maxIdx === 'number') ? opts.maxIdx : 49
   - const premiumEnabled = !!(opts && opts.premiumEnabled)
   - const dayKey = (opts && opts.dayKey) ? opts.dayKey : ''
-  .wordle-game-wrap 
-
-    .game.game--wordle(
+  .wordle-game-wrap
+    .game.wordle-game(
       data-game-key=gameKey
       data-day-key=dayKey
       data-idx=idx
       data-max-idx=maxIdx
       data-premium-enabled=premiumEnabled ? '1' : '0'
       data-status="playing"
+      data-prev-answers-endpoint="/api/games/game1/answers"
     )
       header.game-header
-        h1.game__title Aptati Wordle
-        .under-title
-          p.game-sub
-            |  Next puzzle in
-            span#wordle-countdown.game__countdown(aria-live="polite") 00:00:00 
-            |  hours
-          //- ✅ Attempts indicator
-          p#wordle-attemptsLine.game__attempts(aria-live="polite")
-            | Attempt:
-            span#wordle-attempts 1/6
+        h1.game-title Aptati Wordle
 
-        //- ✅ Streak indicator
-        //- p#wordle-streak.game__streak(aria-live="polite") Streak: 0
+        button.previous-answer-btn(
+          type="button"
+          aria-expanded="false"
+          aria-controls="previous-answers"
+        ) Previous answers
+
+        .previous-answers#previous-answers(hidden aria-label="Previous 10 days answers")
+          .previous-answers-head
+            span.previous-answers-title Previous 10 days
+          p.previous-answers-status(hidden)
+          ul.previous-answers-list
+
+        .sub-heading
+          p.timer-line
+            | Next puzzle in
+            span#wordle-countdown.countdown(aria-live="polite") 00:00:00
+            | hours
+
+          p#wordle-attemptsLine.attempts-line(aria-live="polite")
+            | Attempt:
+            span#wordle-attempts 0/6
 
         if premiumEnabled
-          .game__id
+          .puzzle-picker
             label(for="wordle-idx") Puzzle
             select#wordle-idx(name="idx" aria-label="Puzzle index")
               each val in Array.from({length: maxIdx + 1}, (_, i) => i)
@@ -40,15 +50,18 @@ mixin wordleGame(opts)
         else
           input(type="hidden" id="wordle-idx" value=idx)
 
-      section.game__stage
+      section.game-stage
         .wordle
-          .wordle__board#wordle-board(role="grid" aria-label="Word grid")
+          .wordle-board#wordle-board(role="grid" aria-label="Word grid")
+            #running-commentary.running-commentary
+              p RUNNING COMMENTARY TOAST.
+
             - const rows = 6
             - const cols = 5
             each r in Array.from({length: rows}, (_, i) => i)
-              .wordle__row(role="row" data-row=r)
+              .wordle-row(role="row" data-row=r)
                 each c in Array.from({length: cols}, (_, i) => i)
-                  .wordle__tile(
+                  .wordle-tile(
                     role="gridcell"
                     aria-label=`Row ${r+1} Column ${c+1}`
                     data-row=r
@@ -57,35 +70,33 @@ mixin wordleGame(opts)
                     style=`--i:${c}`
                   )
 
-          .wordle__keyboard#wordle-keyboard(aria-label="Keyboard")
-            .kb__row
+          .wordle-keyboard#wordle-keyboard(aria-label="Keyboard")
+            .kb-row
               each k in ['Q','W','E','R','T','Y','U','I','O','P']
-                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-            .kb__row
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb-row
               each k in ['A','S','D','F','G','H','J','K','L']
-                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-            .kb__row
-              //- button.kb__key.wide-key.return(type="button" data-key="Enter" aria-label="Enter") ⏎
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+            .kb-row
               each k in ['Z','X','C','V','B','N','M']
-                button.kb__key(type="button" data-key=k aria-label=`Key ${k}`)= k
-              button.kb__key.wide-key.backspace(type="button" data-key="Backspace" aria-label="Backspace") ⌫
-            .kb__row
+                button.kb-key(type="button" data-key=k aria-label=`Key ${k}`)= k
+              button.kb-key.backspace(type="button" data-key="Backspace" aria-label="Backspace") ⌫
+
+            .kb-row
               button.enter-key(type="button" data-key="Enter" aria-label="Enter") Enter
-      section.game__footer
-        .game__actions
-          //- button#wordle-shareBtn.btn(type="button") Share
-          button#wordle-resetBtn.btn.btn--ghost(type="button") Reset Game
-          button#wordle-helpBtn.btn.btn--ghost(type="button") Help
 
-        //- p#wordle-toast.game__toast(aria-live="polite")
+      section.game-footer
+        .actions
+          button#wordle-resetBtn.btn.ghost(type="button") Reset Game
+          button#wordle-helpBtn.btn.ghost(type="button") Help
 
-        .share#wordle-sharePanel(hidden)
-          h2.share__title Share
-          pre#wordle-shareText.share__text(aria-label="Share text")
+        .share-panel#wordle-sharePanel(hidden)
+          h2.share-title Share
+          pre#wordle-shareText.share-text(aria-label="Share text")
 
-          .share__actions
+          .share-actions
             button#wordle-copyBtn.btn(type="button") Copy result
-            button#wordle-copyLinkBtn.btn.btn--ghost(type="button") Copy link
-            button#wordle-nativeShareBtn.btn.btn--ghost(type="button") Share…
-            button#wordle-fbBtn.btn.btn--ghost(type="button") Facebook
-            button#wordle-closeShareBtn.btn.btn--ghost(type="button") Close
+            button#wordle-copyLinkBtn.btn.ghost(type="button") Copy link
+            button#wordle-nativeShareBtn.btn.ghost(type="button") Share…
+            button#wordle-fbBtn.btn.ghost(type="button") Facebook
+            button#wordle-closeShareBtn.btn.ghost(type="button") Close
