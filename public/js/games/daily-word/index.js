@@ -8,16 +8,18 @@
 // Total range 0..10 -> tier 1..10 (0 clamps to 1)
 // Shows the matching tier toast element for 2.5s, sliding in from the left over the row.
 //
-// Share-link behavior (NO BACKEND CHANGES):
-// - Shared link uses ?fresh=1 so the grid loads empty (even for the sharer)
-// - In fresh mode we DO NOT read/write the normal localStorage keys
-//   (so clicking your own shared link won’t overwrite your real progress).
-// - Optional hash carries score and is displayed as a small banner:
-//   #shared=1&day=YYYY-MM-DD&idx=0&score=3-6
+// IMPORTANT (server/template wiring):
+// The root element (currently `.wordle-game`) should include datasets:
+//   data-day-key="YYYY-MM-DD"
+//   data-idx="0..N"
+//   data-game-slug="daily-word"
+//   data-game-title="Daily Word"
+//   data-api-base="/api/games/daily-word"
+// Optional:
+//   data-prev-answers-endpoint="/api/games/daily-word/answers"
 
-const CLIENT_VERSION = "2026-01-09.v2-fresh-link-score-hash";
+const CLIENT_VERSION = "2026-01-09.v2-share-fresh-score-banner";
 
-// Keep old global for compatibility (if anything checks it), but also expose a new one.
 window.__WORDLE_CLIENT_VERSION__ = CLIENT_VERSION;
 window.__DAILY_WORD_CLIENT_VERSION__ = CLIENT_VERSION;
 
@@ -84,89 +86,13 @@ function setShareOpen(open) {
   if (panel) panel.hidden = !open;
 }
 
-function readUrlFlags() {
-  let fresh = false;
-  let shared = false;
-  let sharedDay = "";
-  let sharedIdx = "";
-  let sharedScore = "";
-
-  try {
-    const u = new URL(window.location.href);
-    fresh = u.searchParams.get("fresh") === "1";
-
-    const h = (u.hash || "").replace(/^#/, "");
-    if (h) {
-      const hp = new URLSearchParams(h);
-      shared = hp.get("shared") === "1";
-      sharedDay = String(hp.get("day") || "").trim();
-      sharedIdx = String(hp.get("idx") || "").trim();
-      sharedScore = String(hp.get("score") || "").trim(); // e.g. "3-6"
-    }
-  } catch {}
-
-  return { fresh, shared, sharedDay, sharedIdx, sharedScore };
-}
-
-function coerceScoreForBanner(sharedScore) {
-  // Accept "3-6" or "3/6" or "X-6"
-  const s = String(sharedScore || "").trim();
-  if (!s) return "";
-  if (s.includes("/")) return s;
-  if (s.includes("-")) return s.replace("-", "/");
-  return s;
-}
-
-function ensureSharedBanner({ gameTitle, sharedDay, sharedIdx, sharedScore }) {
-  const root = $(".wordle-game-wrap");
-  if (!root) return;
-
-  const scoreText = coerceScoreForBanner(sharedScore);
-  if (!scoreText && !sharedDay && !sharedIdx) return;
-
-  // Don't duplicate
-  if (root.querySelector(".shared-score-banner")) return;
-
-  const banner = document.createElement("div");
-  banner.className = "shared-score-banner";
-  banner.setAttribute("role", "status");
-
-  // Minimal inline style so we don't require CSS work right now
-  banner.style.margin = "0 0 0.75rem 0";
-  banner.style.padding = "0.6rem 0.75rem";
-  banner.style.borderRadius = "0.75rem";
-  banner.style.border = "1px solid rgba(255,255,255,0.12)";
-  banner.style.background = "rgba(0,0,0,0.25)";
-  banner.style.backdropFilter = "blur(6px)";
-  banner.style.fontSize = "0.95rem";
-
-  const bits = [];
-  bits.push("Shared result");
-  if (gameTitle) bits.push(`for ${gameTitle}`);
-  if (sharedDay) bits.push(sharedDay);
-  if (sharedIdx !== "") bits.push(`#${sharedIdx}`);
-  if (scoreText) bits.push(scoreText);
-
-  banner.textContent = bits.join(" · ");
-  root.prepend(banner);
-}
-
 function readGameDataset() {
   const root = $(".wordle-game"); // keep class name for now so existing markup still works
   if (root) root.dataset.clientVersion = CLIENT_VERSION;
 
-  // Support old markup:
-  // - data-game-key (existing)
-  // Support new markup (optional):
-  // - data-game-slug, data-game-title, data-api-base
-  const gameSlug =
-    String(root?.dataset.gameSlug || root?.dataset.gameKey || "daily-word").trim() || "daily-word";
-
-  const gameTitle =
-    String(root?.dataset.gameTitle || "Daily Word").trim() || "Daily Word";
-
-  const apiBase =
-    String(root?.dataset.apiBase || `/api/games/${gameSlug}`).trim() || `/api/games/${gameSlug}`;
+  const gameSlug = String(root?.dataset.gameSlug || "daily-word").trim() || "daily-word";
+  const gameTitle = String(root?.dataset.gameTitle || "Daily Word").trim() || "Daily Word";
+  const apiBase = String(root?.dataset.apiBase || `/api/games/${gameSlug}`).trim() || `/api/games/${gameSlug}`;
 
   return {
     root,
@@ -183,12 +109,12 @@ function puzzleId(gameSlug, dayKey, idx) {
   return `${gameSlug}:${dayKey}:${idx}`;
 }
 
-function stateStorageKey(storageSlug, puzId) {
-  return `aptati:${storageSlug}:state:${puzId}`;
+function stateStorageKey(gameSlug, puzId) {
+  return `aptati:${gameSlug}:state:${puzId}`;
 }
 
-function statsStorageKey(storageSlug) {
-  return `aptati:${storageSlug}:stats`;
+function statsStorageKey(gameSlug) {
+  return `aptati:${gameSlug}:stats`;
 }
 
 function safeJsonParse(raw, fallback) {
@@ -199,52 +125,44 @@ function safeJsonParse(raw, fallback) {
   }
 }
 
-function loadState(storageSlug, gameSlug, dayKey, idx) {
+function loadState(gameSlug, dayKey, idx) {
   const puzId = puzzleId(gameSlug, dayKey, idx);
 
-  // New key
-  const raw = storage.get(stateStorageKey(storageSlug, puzId));
+  const raw = storage.get(stateStorageKey(gameSlug, puzId));
   const current = safeJsonParse(raw, null);
   if (current) return current;
 
-  // Legacy migration only for NON-fresh mode
-  if (storageSlug !== gameSlug) return null;
-
-  // old puzzleId: wordle:YYYY-MM-DD:idx
-  // old key: aptati:wordle:state:${legacyPuzId}
+  // Legacy migration (old puzzleId + namespace)
   const legacyPuzId = `wordle:${dayKey}:${idx}`;
   const legacyRaw = storage.get(`aptati:wordle:state:${legacyPuzId}`);
   const legacy = safeJsonParse(legacyRaw, null);
 
   if (legacy) {
-    storage.set(stateStorageKey(storageSlug, puzId), JSON.stringify(legacy));
+    storage.set(stateStorageKey(gameSlug, puzId), JSON.stringify(legacy));
     return legacy;
   }
 
   return null;
 }
 
-function saveState(storageSlug, gameSlug, dayKey, idx, st) {
+function saveState(gameSlug, dayKey, idx, st) {
   const puzId = puzzleId(gameSlug, dayKey, idx);
-  storage.set(stateStorageKey(storageSlug, puzId), JSON.stringify(st));
+  storage.set(stateStorageKey(gameSlug, puzId), JSON.stringify(st));
 }
 
-function clearState(storageSlug, gameSlug, dayKey, idx) {
+function clearState(gameSlug, dayKey, idx) {
   const puzId = puzzleId(gameSlug, dayKey, idx);
-  storage.remove(stateStorageKey(storageSlug, puzId));
+  storage.remove(stateStorageKey(gameSlug, puzId));
 }
 
-function loadStats(storageSlug, gameSlug) {
-  const cur = safeJsonParse(storage.get(statsStorageKey(storageSlug)), null);
+function loadStats(gameSlug) {
+  const cur = safeJsonParse(storage.get(statsStorageKey(gameSlug)), null);
   if (cur) return cur;
 
-  // Legacy migration only for NON-fresh mode
-  if (storageSlug === gameSlug) {
-    const legacy = safeJsonParse(storage.get("aptati:wordle:stats"), null);
-    if (legacy) {
-      storage.set(statsStorageKey(storageSlug), JSON.stringify(legacy));
-      return legacy;
-    }
+  const legacy = safeJsonParse(storage.get("aptati:wordle:stats"), null);
+  if (legacy) {
+    storage.set(statsStorageKey(gameSlug), JSON.stringify(legacy));
+    return legacy;
   }
 
   return {
@@ -253,8 +171,8 @@ function loadStats(storageSlug, gameSlug) {
   };
 }
 
-function saveStats(storageSlug, stats) {
-  storage.set(statsStorageKey(storageSlug), JSON.stringify(stats));
+function saveStats(gameSlug, stats) {
+  storage.set(statsStorageKey(gameSlug), JSON.stringify(stats));
 }
 
 function rankUpgrade(oldState, newState) {
@@ -372,22 +290,84 @@ function computeShareText({ gameTitle, dayKey, idx, attemptsUsed, gridStates }) 
   return `${header}\n\n${lines.join("\n")}`;
 }
 
-function getShareUrl({ fresh = false, dayKey = "", idx = 0, scoreText = "" } = {}) {
-  // Always share a clean canonical URL with optional ?fresh=1 and hash.
-  const u = new URL(window.location.origin + window.location.pathname);
+// ---------------- Share URL / fresh grid / score banner ----------------
 
-  if (fresh) u.searchParams.set("fresh", "1");
+function baseShareUrl() {
+  return window.location.origin + window.location.pathname;
+}
 
-  if (scoreText || dayKey) {
-    const hp = new URLSearchParams();
-    hp.set("shared", "1");
-    if (dayKey) hp.set("day", String(dayKey));
-    hp.set("idx", String(idx));
-    if (scoreText) hp.set("score", String(scoreText).replace("/", "-"));
-    u.hash = hp.toString();
+function scoreTokenFromState(st) {
+  // token uses '-' so it's URL/fragment friendly: "4-6" or "X-6"
+  const won = st?.status === "won";
+  const used = won ? Number(st?.guesses?.length || 0) : null;
+  const left = used && used > 0 ? String(used) : "X";
+  return `${left}-${MAX_ATTEMPTS}`;
+}
+
+function formatScoreToken(token) {
+  const t = String(token || "").trim();
+  if (!t) return "";
+  // allow "4-6" or "4/6"
+  if (t.includes("-")) return t.replace("-", "/");
+  return t;
+}
+
+function readShareParamsFromUrl() {
+  let fresh = false;
+  let scoreToken = "";
+
+  try {
+    const u = new URL(window.location.href);
+    fresh = u.searchParams.get("fresh") === "1";
+
+    // score token comes from hash so it doesn't affect OG/canonical
+    const h = String(u.hash || "").replace(/^#/, "");
+    const m = /(?:^|&)score=([^&]+)/i.exec(h);
+    if (m && m[1]) scoreToken = decodeURIComponent(m[1]);
+  } catch {}
+
+  return { fresh, scoreToken };
+}
+
+function buildShareUrl({ fresh = true, scoreToken = "" } = {}) {
+  try {
+    const u = new URL(baseShareUrl());
+    if (fresh) u.searchParams.set("fresh", "1");
+    if (scoreToken) u.hash = `score=${encodeURIComponent(scoreToken)}`;
+    return u.toString();
+  } catch {
+    let s = baseShareUrl();
+    if (fresh) s += (s.includes("?") ? "&" : "?") + "fresh=1";
+    if (scoreToken) s += `#score=${encodeURIComponent(scoreToken)}`;
+    return s;
   }
+}
 
-  return u.toString();
+function renderScoreBanner(scoreToken) {
+  const token = String(scoreToken || "").trim();
+  if (!token) return;
+
+  const root = $(".wordle-game-wrap") || $(".wordle-game") || document.body;
+  if (!root) return;
+
+  if (root.querySelector(".share-score-banner")) return;
+
+  const banner = document.createElement("div");
+  banner.className = "share-score-banner";
+  banner.setAttribute("role", "status");
+  banner.setAttribute("aria-live", "polite");
+
+  const scoreText = formatScoreToken(token);
+  banner.textContent = `Shared score: ${scoreText}`;
+
+  // minimal inline style so it’s visible without CSS work
+  banner.style.padding = "0.6rem 0.8rem";
+  banner.style.margin = "0 0 0.8rem 0";
+  banner.style.border = "1px solid rgba(255,255,255,0.2)";
+  banner.style.borderRadius = "0.75rem";
+  banner.style.background = "rgba(0,0,0,0.25)";
+
+  root.prepend(banner);
 }
 
 async function copyToClipboard(text) {
@@ -508,7 +488,6 @@ function normalizeKeyFromEvent(e) {
 let rowToastTimer = null;
 
 function scoreRowFromStates(states) {
-  // correct=2, present=1, absent=0
   let total = 0;
   for (const s of states || []) {
     if (s === "correct") total += 2;
@@ -519,7 +498,6 @@ function scoreRowFromStates(states) {
 }
 
 function toastTierFromScore(score) {
-  // only 1..10 exist; clamp 0 -> 1
   const n = Number(score) || 0;
   return Math.max(1, Math.min(10, n));
 }
@@ -577,7 +555,6 @@ function showRowToast({ row, tier }) {
 
   hideAllRowToasts();
 
-  // restart animation reliably
   el.classList.remove("is-show");
   void el.offsetWidth;
   el.classList.add("is-show");
@@ -794,42 +771,27 @@ function initPreviousAnswersUi({ dayKey, idx, endpoint }) {
 
 // -------------------------------------------------------------------------
 
-function attemptsScoreText(st) {
-  if (!st) return "";
-  if (st.status === "won") return `${st.guesses.length}/${MAX_ATTEMPTS}`;
-  if (st.status === "lost") return `X/${MAX_ATTEMPTS}`;
-  return "";
-}
-
 function initDailyWord() {
   initCountdown();
-
-  const { fresh, shared, sharedDay, sharedIdx, sharedScore } = readUrlFlags();
 
   const { root, dayKey, idx, gameSlug, gameTitle, apiBase, prevAnswersEndpoint } = readGameDataset();
   if (!root) return;
 
-  // If this page was opened from a shared link, show banner (optional).
-  if (shared) {
-    ensureSharedBanner({
-      gameTitle,
-      sharedDay,
-      sharedIdx,
-      sharedScore,
-    });
-  }
+  const shareParams = readShareParamsFromUrl();
+  if (shareParams.scoreToken) renderScoreBanner(shareParams.scoreToken);
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) {
     toast("Missing dayKey.");
     return;
   }
 
-  initPreviousAnswersUi({ dayKey, idx, endpoint: prevAnswersEndpoint });
+  // If this page was opened via a shared link (?fresh=1), force an empty grid.
+  // This prevents "share link shows my saved result".
+  if (shareParams.fresh) {
+    clearState(gameSlug, dayKey, idx);
+  }
 
-  // Key idea:
-  // - normal mode uses storageSlug = gameSlug
-  // - fresh mode uses storageSlug = `${gameSlug}:fresh` so it never loads/overwrites real progress
-  const storageSlug = fresh ? `${gameSlug}:fresh` : gameSlug;
+  initPreviousAnswersUi({ dayKey, idx, endpoint: prevAnswersEndpoint });
 
   const puzId = puzzleId(gameSlug, dayKey, idx);
 
@@ -843,16 +805,15 @@ function initDailyWord() {
     status: "playing",
   };
 
-  const saved = loadState(storageSlug, gameSlug, dayKey, idx);
+  const saved = loadState(gameSlug, dayKey, idx);
   let st = saved && saved.puzzleId === puzId ? saved : defaultState;
 
   st = migrateStateShape(st);
-  saveState(storageSlug, gameSlug, dayKey, idx, st);
+  saveState(gameSlug, dayKey, idx, st);
 
   let isSubmitting = false;
 
-  // In fresh mode, also isolate stats so clicking shared links doesn't change streaks.
-  const stats = loadStats(storageSlug, gameSlug);
+  const stats = loadStats(gameSlug);
   renderStreak(stats);
   renderBoard(st);
 
@@ -862,7 +823,7 @@ function initDailyWord() {
 
     st.current += L.toLowerCase();
     renderBoard(st);
-    saveState(storageSlug, gameSlug, dayKey, idx, st);
+    saveState(gameSlug, dayKey, idx, st);
   };
 
   const onBackspace = () => {
@@ -871,7 +832,7 @@ function initDailyWord() {
 
     st.current = st.current.slice(0, -1);
     renderBoard(st);
-    saveState(storageSlug, gameSlug, dayKey, idx, st);
+    saveState(gameSlug, dayKey, idx, st);
   };
 
   const onEnter = async () => {
@@ -916,9 +877,8 @@ function initDailyWord() {
       st.current = "";
 
       renderBoard(st);
-      saveState(storageSlug, gameSlug, dayKey, idx, st);
+      saveState(gameSlug, dayKey, idx, st);
 
-      // 10 separate toasts (tier = score 1..10)
       const score = scoreRowFromStates(result); // 0..10
       const tier = toastTierFromScore(score);
       showRowToast({ row, tier });
@@ -926,17 +886,16 @@ function initDailyWord() {
       if (data.isSolved) {
         st.status = "won";
 
-        // In fresh mode, stats are isolated; in normal mode, real streak works.
-        const s = loadStats(storageSlug, gameSlug);
+        const s = loadStats(gameSlug);
         if (s.lastWinDayKey !== dayKey) {
           s.streak = Number(s.streak || 0) + 1;
           s.lastWinDayKey = dayKey;
-          saveStats(storageSlug, s);
+          saveStats(gameSlug, s);
           renderStreak(s);
         }
 
         toast("Solved!");
-        saveState(storageSlug, gameSlug, dayKey, idx, st);
+        saveState(gameSlug, dayKey, idx, st);
         openSharePanel(st, { gameTitle, dayKey, idx });
         return;
       }
@@ -944,13 +903,13 @@ function initDailyWord() {
       if (st.guesses.length >= MAX_ATTEMPTS) {
         st.status = "lost";
 
-        const s = loadStats(storageSlug, gameSlug);
+        const s = loadStats(gameSlug);
         s.streak = 0;
-        saveStats(storageSlug, s);
+        saveStats(gameSlug, s);
         renderStreak(s);
 
         toast("Unlucky. New puzzle at 00:00 UTC.");
-        saveState(storageSlug, gameSlug, dayKey, idx, st);
+        saveState(gameSlug, dayKey, idx, st);
         openSharePanel(st, { gameTitle, dayKey, idx });
         return;
       }
@@ -999,7 +958,6 @@ function initDailyWord() {
     if (/^[A-Z]$/.test(k)) onLetter(k);
   });
 
-  // Share actions
   $("#wordle-shareBtn")?.addEventListener("click", () => openSharePanel(st, { gameTitle, dayKey, idx }));
   $("#wordle-closeShareBtn")?.addEventListener("click", () => setShareOpen(false));
 
@@ -1009,18 +967,16 @@ function initDailyWord() {
     toast(ok ? "Copied result ✅" : "Copy failed.");
   });
 
-  // Copy link: always share a fresh board link + include score in hash (optional banner)
   $("#wordle-copyLinkBtn")?.addEventListener("click", async () => {
-    const scoreText = attemptsScoreText(st);
-    const url = getShareUrl({ fresh: true, dayKey, idx, scoreText });
+    const scoreToken = scoreTokenFromState(st);
+    const url = buildShareUrl({ fresh: true, scoreToken });
     const ok = await copyToClipboard(url);
-    toast(ok ? "Copied link 🔗" : "Copy failed.");
+    toast(ok ? "Copied fresh link 🔗" : "Copy failed.");
   });
 
-  // Native share: share fresh link so clicking opens empty grid
   $("#wordle-nativeShareBtn")?.addEventListener("click", async () => {
-    const scoreText = attemptsScoreText(st);
-    const url = getShareUrl({ fresh: true, dayKey, idx, scoreText });
+    const scoreToken = scoreTokenFromState(st);
+    const url = buildShareUrl({ fresh: true, scoreToken });
     const text = $("#wordle-shareText")?.textContent || "";
 
     if (navigator.share) {
@@ -1029,39 +985,42 @@ function initDailyWord() {
         toast("Shared ✅");
       } catch {}
     } else {
-      toast("No native share on this browser.");
+      const ok = await copyToClipboard(`${text}\n\n${url}`.trim());
+      toast(ok ? "Copied share text + link ✅" : "No native share on this browser.");
     }
   });
 
-  // Facebook: open share dialog with the FRESH URL, and copy result text for paste
   $("#wordle-fbBtn")?.addEventListener("click", async () => {
-    const scoreText = attemptsScoreText(st);
-    const shareTarget = getShareUrl({ fresh: true, dayKey, idx, scoreText });
-    const shareUrl = encodeURIComponent(shareTarget);
-    const fb = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+    const scoreToken = scoreTokenFromState(st);
+    const url = buildShareUrl({ fresh: true, scoreToken });
 
     const text = $("#wordle-shareText")?.textContent || "";
+
+    // Best-effort: Facebook may ignore quote, so we always copy.
     if (text) {
       const ok = await copyToClipboard(text);
-      toast(ok ? "Result copied. Paste into Facebook post." : "Open Facebook. (Copy failed)");
+      toast(ok ? "Result copied. Paste into Facebook post." : "Copy failed. Paste manually.");
     } else {
-      toast("Open Facebook share.");
+      toast("Facebook share opened.");
     }
+
+    const shareUrl = encodeURIComponent(url);
+    const quote = text ? `&quote=${encodeURIComponent(text)}` : "";
+    const fb = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}${quote}`;
 
     window.open(fb, "_blank", "noopener,noreferrer,width=640,height=480");
   });
 
   $("#wordle-resetBtn")?.addEventListener("click", () => {
-    clearState(storageSlug, gameSlug, dayKey, idx);
+    clearState(gameSlug, dayKey, idx);
 
     st = migrateStateShape({ ...defaultState });
 
     renderBoard(st);
-    saveState(storageSlug, gameSlug, dayKey, idx, st);
+    saveState(gameSlug, dayKey, idx, st);
     toast("Reset locally.");
   });
 
-  // Keep toast aligned if window changes mid-toast (best effort).
   window.addEventListener("resize", () => {
     const host = rowToastHost();
     if (!host) return;
