@@ -227,7 +227,7 @@ app.get("/games/daily-word", (req, res) => {
         path: "/games/daily-word",
         canonicalPath: "/games/daily-word",
         ogType: "website",
-        ogImage: "/images/og/word-og_1200x675.webp",
+        ogImage: "/images/og/daily-word-og_1200x675.webp",
         twitterImage: "/images/og/word-og_1200x675.webp",
         ogWidth: 1200,
         ogHeight: 675,
@@ -239,33 +239,33 @@ app.get("/games/daily-word", (req, res) => {
 
 // ✅ You want ONE URL only.
 // Hard-stop legacy URLs BEFORE other route files can touch them.
-app.get("/games/game1", (req, res) => {
-  return res.status(404).render("404", {
-    ...pageMeta(req, {
-      siteName: "Aptati Arcade",
-      title: "404",
-      description: "Page not found.",
-      path: "/games/game1",
-      ogType: "website",
-      robots: "noindex, nofollow",
-    }),
-    url: req.originalUrl,
-  });
-});
+// app.get("/games/game1", (req, res) => {
+//   return res.status(404).render("404", {
+//     ...pageMeta(req, {
+//       siteName: "Aptati Arcade",
+//       title: "404",
+//       description: "Page not found.",
+//       path: "/games/game1",
+//       ogType: "website",
+//       robots: "noindex, nofollow",
+//     }),
+//     url: req.originalUrl,
+//   });
+// });
 
-app.get("/games/wordle", (req, res) => {
-  return res.status(404).render("404", {
-    ...pageMeta(req, {
-      siteName: "Aptati Arcade",
-      title: "404",
-      description: "Page not found.",
-      path: "/games/wordle",
-      ogType: "website",
-      robots: "noindex, nofollow",
-    }),
-    url: req.originalUrl,
-  });
-});
+// app.get("/games/wordle", (req, res) => {
+//   return res.status(404).render("404", {
+//     ...pageMeta(req, {
+//       siteName: "Aptati Arcade",
+//       title: "404",
+//       description: "Page not found.",
+//       path: "/games/wordle",
+//       ogType: "website",
+//       robots: "noindex, nofollow",
+//     }),
+//     url: req.originalUrl,
+//   });
+// });
 
 app.use("/", authRoutes);
 app.use("/", dashboardRoutes);
