@@ -10,7 +10,7 @@ html(lang="en")
 
     //- ---------- Defaults (override via res.locals or via block vars in child templates) ----------
     - var _title     = (typeof title !== "undefined" && title) ? String(title) : "Aptati Arcade";
-    - var _desc      = (typeof description !== "undefined" && description) ? String(description) : "Snack-size games and daily puzzles on Aptati Arcade.";
+    - var _desc      = (typeof description !== "undefined" && description) ? String(description) : "Snack-size games and daily puzzles. Tiny games. Big grins.";
     - var _canon     = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
     - var _siteName  = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Aptati Arcade";
     - var _ogType    = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";

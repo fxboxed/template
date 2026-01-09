@@ -200,7 +200,7 @@ app.get("/", (req, res) => {
     pageMeta(req, {
       siteName: "Aptati Arcade",
       title: "Aptati Arcade",
-      description: "Snack-size games and daily puzzles on Aptati Arcade.",
+      description: "Snack-size games and daily puzzles. Tiny games. Big grins.",
       path: "/",
       canonicalPath: "/",
       ogType: "website",
