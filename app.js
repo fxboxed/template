@@ -22,7 +22,7 @@ import { pageMeta } from "./utils/page-meta.js";
 import { connectDB, mongoStatus } from "./utils/db.js";
 import User from "./models/User.js";
 
-// Game 1 (Wordle)
+// Game API (Wordle-style) -> Daily Word
 import wordleApi from "./routes/api/wordle.js";
 import { getDayKeyUTC } from "./server/games/wordle/puzzle.js";
 
@@ -51,8 +51,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Game 1 API mount
-// Client calls POST /api/games/game1/guess
+// ✅ API mounts (new + legacy)
+app.use("/api/games/daily-word", wordleApi);
 app.use("/api/games/game1", wordleApi);
 
 // ---- session cookie
@@ -161,7 +161,13 @@ app.use((req, res, next) => {
 
   res.locals.isAuthed = authed;
   res.locals.user = req.user || null;
+
+  // Brand defaults (so we don't get "Home / template..." previews)
+  res.locals.siteName = "Aptati Arcade";
+
+  // GA id (layout handles consent stub only)
   res.locals.gaId = String(process.env.GA_MEASUREMENT_ID || "").trim();
+
   next();
 });
 
@@ -187,43 +193,51 @@ app.get("/health/db", (req, res) => {
 });
 
 // ---- routes
+
+// Home
 app.get("/", (req, res) => {
   return res.render(
     "index",
     pageMeta(req, {
-      title: "Home",
-      description: "A simple Node/Express template with Pug, sessions, Google login, and games.",
+      title: "Aptati Arcade",
+      description: "Snack-size games and daily puzzles. Tiny games. Big grins.",
       path: "/",
       ogType: "website",
+      ogImage: "/images/og/index-og_1200x675.webp",
+      twitterImage: "/images/og/index-og_1200x675.webp",
+      ogWidth: 1200,
+      ogHeight: 675,
     })
   );
 });
 
-// ✅ Game 1 page route (Wordle)
-app.get("/games/game1", (req, res) => {
+// ✅ Canonical Daily Word route
+app.get("/games/daily-word", (req, res) => {
   const dayKey = getDayKeyUTC(new Date());
 
   return res.render(
-    "games/game1",
+    "games/word-game",
     pageMeta(
       req,
       {
-        title: "Game 1",
-        description: "Daily global Wordle-style puzzle (UTC).",
-        path: "/games/game1",
+        title: "Daily Word",
+        description: "Guess today’s 5-letter word on Aptati Arcade.",
+        path: "/games/daily-word",
+        canonicalPath: "/games/daily-word",
         ogType: "website",
-
-        // Optional OG image if you add one later:
-        // ogImage: "/img/og/game1.png",
-        // twitterImage: "/img/og/game1.png",
+        ogImage: "/images/og/word-og_1200x675.webp",
+        twitterImage: "/images/og/word-og_1200x675.webp",
+        ogWidth: 1200,
+        ogHeight: 675,
       },
       { dayKey }
     )
   );
 });
 
-// Friendly alias for sharing/bookmarks
-app.get("/games/wordle", (req, res) => res.redirect(302, "/games/game1"));
+// ✅ Legacy URLs redirect to canonical
+app.get("/games/game1", (req, res) => res.redirect(301, "/games/daily-word"));
+app.get("/games/wordle", (req, res) => res.redirect(301, "/games/daily-word"));
 
 app.use("/", authRoutes);
 app.use("/", dashboardRoutes);

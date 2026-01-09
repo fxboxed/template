@@ -1,0 +1,13 @@
+//- views/games/word-game.pug
+extends ../layout.pug
+include ../partials/wordle-game.pug
+
+block content
+  +wordleGame({
+    gameKey: 'daily-word',
+    dayKey: (typeof dayKey !== 'undefined' ? dayKey : ''),
+    idx: (typeof idx !== 'undefined' ? idx : 0),
+    maxIdx: (typeof maxIdx !== 'undefined' ? maxIdx : 49),
+    premiumEnabled: (typeof premiumEnabled !== 'undefined' ? premiumEnabled : false),
+    prevAnswersEndpoint: "/api/games/daily-word/answers"
+  })

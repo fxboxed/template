@@ -2,18 +2,7 @@
 extends ./layout.pug
 include ./mixins/responsive-grid-mixin.pug
 
-  //- Page meta consumed by layout.pug
-  - var siteName = "Aptati Arcade"
-  - var title = "Aptati Arcade"
-  - var description = "Snack-size games and daily puzzles on Aptati Arcade."
-  - var canonical = "https://aptati.com/"
-  - var ogImage = "/images/og/index-og_1200x675.webp"
-  - var defaultOgImage = "/images/og/index-og_1200x675.webp"
-  - var ogWidth = 1200
-  - var ogHeight = 675
-
 block content
-  //- Optional visible hero image (not required for OG, but fine to keep)
   img(
     src="/images/og/index-og_1200x675.webp"
     alt="Aptati Arcade: playful games you can play online"
@@ -22,7 +11,7 @@ block content
   )
 
   +responsiveGrid("380px", 3, "1rem", "grid-item grid-item-card-link")
-    a(href="/games/game1")
+    a(href="/games/daily-word")
       img(
         src="/images/tiles/word-tile_1200x1200.webp"
         alt="Daily Word"

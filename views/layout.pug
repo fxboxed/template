@@ -2,14 +2,17 @@
 doctype html
 html(lang="en")
   head
+    //- Allow child templates to set vars BEFORE defaults are calculated
+    block vars
+
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1")
 
-    //- ---------- Defaults (override via res.locals in routes or vars in child views) ----------
-    - var _title     = (typeof title !== "undefined" && title) ? String(title) : "Site";
-    - var _desc      = (typeof description !== "undefined" && description) ? String(description) : "Static Node site";
+    //- ---------- Defaults (override via res.locals or via block vars in child templates) ----------
+    - var _title     = (typeof title !== "undefined" && title) ? String(title) : "Aptati Arcade";
+    - var _desc      = (typeof description !== "undefined" && description) ? String(description) : "Snack-size games and daily puzzles. Tiny games. Big grins.";
     - var _canon     = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
-    - var _siteName  = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Site";
+    - var _siteName  = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Aptati Arcade";
     - var _ogType    = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";
     - var _ogImage   = (typeof ogImage !== "undefined" && ogImage) ? String(ogImage) : ((typeof defaultOgImage !== "undefined" && defaultOgImage) ? String(defaultOgImage) : "");
     - var _ogWidth   = (typeof ogWidth !== "undefined" && ogWidth) ? String(ogWidth) : "";
@@ -67,7 +70,6 @@ html(lang="en")
       meta(name="twitter:creator" content=_twCreator)
 
     //- ---------- Google Analytics (Consent Mode stub only) ----------
-    //- Do NOT load GA here. Only set default consent to denied.
     if _gaId
       script.
         window.__GA_MEASUREMENT_ID__ = "#{_gaId}";
@@ -80,7 +82,6 @@ html(lang="en")
           ad_personalization:'denied'
         });
 
-    //- Per-page extras
     block head
 
     link(rel="stylesheet" href="/css/main.css")
@@ -93,10 +94,8 @@ html(lang="en")
       span.bar
       span.bar
 
-    //- ✅ Cookie consent UI included ONCE (not in an overridable block)
     include ./partials/cookie-consent.pug
 
-    //- Optional hook for future cookie-related extras (leave empty for now)
     block cookie
 
     include ./partials/header.pug
@@ -107,10 +106,8 @@ html(lang="en")
 
     include ./partials/footer.pug
 
-    //- ✅ Core scripts always loaded (cannot be overridden by child templates)
     script(src="/js/aptati-consent.js" defer)
     script(src="/js/nav-toggle.js" defer)
     script(src="/js/contact-modal.js" defer)
 
-    //- Page-specific scripts (child templates can add with "append scripts")
     block scripts
