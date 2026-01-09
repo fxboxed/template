@@ -228,7 +228,7 @@ app.get("/games/daily-word", (req, res) => {
         canonicalPath: "/games/daily-word",
         ogType: "website",
         ogImage: "/images/og/daily-word-og_1200x675.webp",
-        twitterImage: "/images/og/word-og_1200x675.webp",
+        twitterImage: "/images/og/daily-word-og_1200x675.webp",
         ogWidth: 1200,
         ogHeight: 675,
       },
