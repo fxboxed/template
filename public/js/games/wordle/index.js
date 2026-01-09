@@ -1,16 +1,28 @@
-// public/js/games/wordle/index.js (ESM)
+// public/js/games/daily-word/index.js (ESM)
 //
-// Wordle client + Previous Answers overlay dropdown (animated).
+// Daily Word client + Previous Answers overlay dropdown (animated).
 // Row-score toast (10 separate toasts):
 // - correct tile = 2
 // - present tile = 1
 // - absent tile = 0
 // Total range 0..10 -> tier 1..10 (0 clamps to 1)
-// Shows the matching tier toast element for 1.5s, sliding in from the left over the row.
+// Shows the matching tier toast element for 2.5s, sliding in from the left over the row.
+//
+// IMPORTANT (server/template wiring):
+// The root element (currently `.wordle-game`) should include datasets:
+//   data-day-key="YYYY-MM-DD"
+//   data-idx="0..N"
+//   data-game-slug="daily-word"
+//   data-game-title="Daily Word"
+//   data-api-base="/api/games/daily-word"
+// Optional:
+//   data-prev-answers-endpoint="/api/games/daily-word/answers"
 
-const CLIENT_VERSION = "2026-01-08.v6-10separate-row-toasts";
+const CLIENT_VERSION = "2026-01-09.v1-daily-word-registry-ready";
 
+// Keep old global for compatibility (if anything checks it), but also expose a new one.
 window.__WORDLE_CLIENT_VERSION__ = CLIENT_VERSION;
+window.__DAILY_WORD_CLIENT_VERSION__ = CLIENT_VERSION;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -76,27 +88,34 @@ function setShareOpen(open) {
 }
 
 function readGameDataset() {
-  const root = $(".wordle-game");
+  const root = $(".wordle-game"); // keep class name for now so existing markup still works
   if (root) root.dataset.clientVersion = CLIENT_VERSION;
+
+  const gameSlug = String(root?.dataset.gameSlug || "daily-word").trim() || "daily-word";
+  const gameTitle = String(root?.dataset.gameTitle || "Daily Word").trim() || "Daily Word";
+  const apiBase = String(root?.dataset.apiBase || `/api/games/${gameSlug}`).trim() || `/api/games/${gameSlug}`;
 
   return {
     root,
     dayKey: root?.dataset.dayKey || "",
     idx: Number(root?.dataset.idx || 0),
-    prevAnswersEndpoint: root?.dataset.prevAnswersEndpoint || "/api/games/game1/answers",
+    gameSlug,
+    gameTitle,
+    apiBase,
+    prevAnswersEndpoint: root?.dataset.prevAnswersEndpoint || `${apiBase}/answers`,
   };
 }
 
-function puzzleId(dayKey, idx) {
-  return `wordle:${dayKey}:${idx}`;
+function puzzleId(gameSlug, dayKey, idx) {
+  return `${gameSlug}:${dayKey}:${idx}`;
 }
 
-function stateStorageKey(puzId) {
-  return `aptati:wordle:state:${puzId}`;
+function stateStorageKey(gameSlug, puzId) {
+  return `aptati:${gameSlug}:state:${puzId}`;
 }
 
-function statsStorageKey() {
-  return `aptati:wordle:stats`;
+function statsStorageKey(gameSlug) {
+  return `aptati:${gameSlug}:stats`;
 }
 
 function safeJsonParse(raw, fallback) {
@@ -107,27 +126,59 @@ function safeJsonParse(raw, fallback) {
   }
 }
 
-function loadState(puzId) {
-  return safeJsonParse(storage.get(stateStorageKey(puzId)), null);
+function loadState(gameSlug, dayKey, idx) {
+  const puzId = puzzleId(gameSlug, dayKey, idx);
+
+  // New key
+  const raw = storage.get(stateStorageKey(gameSlug, puzId));
+  const current = safeJsonParse(raw, null);
+  if (current) return current;
+
+  // Legacy migration (old puzzleId + namespace)
+  // old puzzleId: wordle:YYYY-MM-DD:idx
+  // old key: aptati:wordle:state:${legacyPuzId}
+  const legacyPuzId = `wordle:${dayKey}:${idx}`;
+  const legacyRaw = storage.get(`aptati:wordle:state:${legacyPuzId}`);
+  const legacy = safeJsonParse(legacyRaw, null);
+
+  if (legacy) {
+    // Save into new slug namespace so progress carries over after rename.
+    storage.set(stateStorageKey(gameSlug, puzId), JSON.stringify(legacy));
+    return legacy;
+  }
+
+  return null;
 }
 
-function saveState(puzId, st) {
-  storage.set(stateStorageKey(puzId), JSON.stringify(st));
+function saveState(gameSlug, dayKey, idx, st) {
+  const puzId = puzzleId(gameSlug, dayKey, idx);
+  storage.set(stateStorageKey(gameSlug, puzId), JSON.stringify(st));
 }
 
-function clearState(puzId) {
-  storage.remove(stateStorageKey(puzId));
+function clearState(gameSlug, dayKey, idx) {
+  const puzId = puzzleId(gameSlug, dayKey, idx);
+  storage.remove(stateStorageKey(gameSlug, puzId));
 }
 
-function loadStats() {
-  return safeJsonParse(storage.get(statsStorageKey()), {
+function loadStats(gameSlug) {
+  const cur = safeJsonParse(storage.get(statsStorageKey(gameSlug)), null);
+  if (cur) return cur;
+
+  // Legacy migration (old namespace)
+  const legacy = safeJsonParse(storage.get("aptati:wordle:stats"), null);
+  if (legacy) {
+    storage.set(statsStorageKey(gameSlug), JSON.stringify(legacy));
+    return legacy;
+  }
+
+  return {
     streak: 0,
     lastWinDayKey: null,
-  });
+  };
 }
 
-function saveStats(stats) {
-  storage.set(statsStorageKey(), JSON.stringify(stats));
+function saveStats(gameSlug, stats) {
+  storage.set(statsStorageKey(gameSlug), JSON.stringify(stats));
 }
 
 function rankUpgrade(oldState, newState) {
@@ -238,9 +289,9 @@ function migrateStateShape(st) {
   return next;
 }
 
-function computeShareText({ dayKey, idx, attemptsUsed, gridStates }) {
+function computeShareText({ gameTitle, dayKey, idx, attemptsUsed, gridStates }) {
   const score = attemptsUsed != null ? `${attemptsUsed}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`;
-  const header = `Game 1 (aptati) ${dayKey} #${idx} ${score}`;
+  const header = `${gameTitle} (Aptati Arcade) ${dayKey} #${idx} ${score}`;
   const lines = gridStates.map((row) => row.map((s) => EMOJI[s] || "⬛").join(""));
   return `${header}\n\n${lines.join("\n")}`;
 }
@@ -270,8 +321,8 @@ async function copyToClipboard(text) {
   }
 }
 
-async function apiGuess({ dayKey, idx, guess }) {
-  const res = await fetch("/api/games/game1/guess", {
+async function apiGuess({ apiBase, dayKey, idx, guess }) {
+  const res = await fetch(`${apiBase}/guess`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ dayKey, idx, guess }),
@@ -338,7 +389,7 @@ function renderBoard(st) {
   renderAttempts(st);
 }
 
-function openSharePanel(st, { dayKey, idx }) {
+function openSharePanel(st, { gameTitle, dayKey, idx }) {
   const pre = $("#wordle-shareText");
   if (!pre) return;
 
@@ -350,7 +401,7 @@ function openSharePanel(st, { dayKey, idx }) {
 
   const attemptsUsed = st.status === "won" ? st.guesses.length : null;
 
-  pre.textContent = computeShareText({ dayKey, idx, attemptsUsed, gridStates });
+  pre.textContent = computeShareText({ gameTitle, dayKey, idx, attemptsUsed, gridStates });
   setShareOpen(true);
 }
 
@@ -409,7 +460,6 @@ function positionRowToastHostOverRow(row) {
   const rEl = rowEl(row);
   if (!host || !board) return;
 
-  // Fallback: top of tiles
   let topPx = 0;
 
   try {
@@ -435,7 +485,6 @@ function showRowToast({ row, tier }) {
 
   positionRowToastHostOverRow(row);
 
-  // show only the matching toast
   hideAllRowToasts();
 
   // restart animation reliably
@@ -655,10 +704,10 @@ function initPreviousAnswersUi({ dayKey, idx, endpoint }) {
 
 // -------------------------------------------------------------------------
 
-function initWordle() {
+function initDailyWord() {
   initCountdown();
 
-  const { root, dayKey, idx, prevAnswersEndpoint } = readGameDataset();
+  const { root, dayKey, idx, gameSlug, gameTitle, apiBase, prevAnswersEndpoint } = readGameDataset();
   if (!root) return;
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) {
@@ -668,7 +717,7 @@ function initWordle() {
 
   initPreviousAnswersUi({ dayKey, idx, endpoint: prevAnswersEndpoint });
 
-  const puzId = puzzleId(dayKey, idx);
+  const puzId = puzzleId(gameSlug, dayKey, idx);
 
   const defaultState = {
     puzzleId: puzId,
@@ -680,15 +729,15 @@ function initWordle() {
     status: "playing",
   };
 
-  const saved = loadState(puzId);
+  const saved = loadState(gameSlug, dayKey, idx);
   let st = saved && saved.puzzleId === puzId ? saved : defaultState;
 
   st = migrateStateShape(st);
-  saveState(puzId, st);
+  saveState(gameSlug, dayKey, idx, st);
 
   let isSubmitting = false;
 
-  const stats = loadStats();
+  const stats = loadStats(gameSlug);
   renderStreak(stats);
   renderBoard(st);
 
@@ -698,7 +747,7 @@ function initWordle() {
 
     st.current += L.toLowerCase();
     renderBoard(st);
-    saveState(puzId, st);
+    saveState(gameSlug, dayKey, idx, st);
   };
 
   const onBackspace = () => {
@@ -707,7 +756,7 @@ function initWordle() {
 
     st.current = st.current.slice(0, -1);
     renderBoard(st);
-    saveState(puzId, st);
+    saveState(gameSlug, dayKey, idx, st);
   };
 
   const onEnter = async () => {
@@ -725,7 +774,7 @@ function initWordle() {
     toast("Checking…");
 
     try {
-      const data = await apiGuess({ dayKey, idx, guess: g });
+      const data = await apiGuess({ apiBase, dayKey, idx, guess: g });
 
       if (!data?.ok) {
         toast("Server error.");
@@ -752,9 +801,9 @@ function initWordle() {
       st.current = "";
 
       renderBoard(st);
-      saveState(puzId, st);
+      saveState(gameSlug, dayKey, idx, st);
 
-      // ✅ 10 separate toasts (tier = score 1..10)
+      // 10 separate toasts (tier = score 1..10)
       const score = scoreRowFromStates(result); // 0..10
       const tier = toastTierFromScore(score);
       showRowToast({ row, tier });
@@ -762,31 +811,31 @@ function initWordle() {
       if (data.isSolved) {
         st.status = "won";
 
-        const s = loadStats();
+        const s = loadStats(gameSlug);
         if (s.lastWinDayKey !== dayKey) {
           s.streak = Number(s.streak || 0) + 1;
           s.lastWinDayKey = dayKey;
-          saveStats(s);
+          saveStats(gameSlug, s);
           renderStreak(s);
         }
 
         toast("Solved!");
-        saveState(puzId, st);
-        openSharePanel(st, { dayKey, idx });
+        saveState(gameSlug, dayKey, idx, st);
+        openSharePanel(st, { gameTitle, dayKey, idx });
         return;
       }
 
       if (st.guesses.length >= MAX_ATTEMPTS) {
         st.status = "lost";
 
-        const s = loadStats();
+        const s = loadStats(gameSlug);
         s.streak = 0;
-        saveStats(s);
+        saveStats(gameSlug, s);
         renderStreak(s);
 
         toast("Unlucky. New puzzle at 00:00 UTC.");
-        saveState(puzId, st);
-        openSharePanel(st, { dayKey, idx });
+        saveState(gameSlug, dayKey, idx, st);
+        openSharePanel(st, { gameTitle, dayKey, idx });
         return;
       }
 
@@ -834,7 +883,7 @@ function initWordle() {
     if (/^[A-Z]$/.test(k)) onLetter(k);
   });
 
-  $("#wordle-shareBtn")?.addEventListener("click", () => openSharePanel(st, { dayKey, idx }));
+  $("#wordle-shareBtn")?.addEventListener("click", () => openSharePanel(st, { gameTitle, dayKey, idx }));
   $("#wordle-closeShareBtn")?.addEventListener("click", () => setShareOpen(false));
 
   $("#wordle-copyBtn")?.addEventListener("click", async () => {
@@ -855,7 +904,7 @@ function initWordle() {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Game 1 (aptati)", text, url });
+        await navigator.share({ title: gameTitle, text, url });
         toast("Shared ✅");
       } catch {}
     } else {
@@ -879,12 +928,12 @@ function initWordle() {
   });
 
   $("#wordle-resetBtn")?.addEventListener("click", () => {
-    clearState(puzId);
+    clearState(gameSlug, dayKey, idx);
 
     st = migrateStateShape({ ...defaultState });
 
     renderBoard(st);
-    saveState(puzId, st);
+    saveState(gameSlug, dayKey, idx, st);
     toast("Reset locally.");
   });
 
@@ -899,4 +948,4 @@ function initWordle() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", initWordle);
+document.addEventListener("DOMContentLoaded", initDailyWord);

@@ -1,0 +1,41 @@
+//- views/partials/og-meta.pug
+//- Expects locals:
+//-   pageTitle, pageDescription, ogImagePath, canonicalPath
+//- Optional:
+//-   siteName, twitterSite
+
+-
+  const _siteName = typeof siteName === "string" && siteName.trim() ? siteName.trim() : "Aptati Arcade";
+  const _title = typeof pageTitle === "string" && pageTitle.trim() ? pageTitle.trim() : _siteName;
+  const _desc = typeof pageDescription === "string" && pageDescription.trim()
+    ? pageDescription.trim()
+    : "Quick, playful mini games and daily puzzles on Aptati Arcade.";
+  const _host = typeof absoluteBaseUrl === "string" && absoluteBaseUrl.trim()
+    ? absoluteBaseUrl.trim().replace(/\/+$/, "")
+    : "";
+  const _canonicalPath = typeof canonicalPath === "string" && canonicalPath.trim() ? canonicalPath.trim() : "/";
+  const _canonicalUrl = _host ? (_host + _canonicalPath) : _canonicalPath;
+
+  const _ogImagePath = typeof ogImagePath === "string" && ogImagePath.trim()
+    ? ogImagePath.trim()
+    : "/og/aptati-arcade-og-1200x630.png";
+  const _ogImageUrl = _host ? (_host + _ogImagePath) : _ogImagePath;
+
+meta(property="og:site_name" content=_siteName)
+meta(property="og:title" content=_title)
+meta(property="og:description" content=_desc)
+meta(property="og:type" content="website")
+meta(property="og:url" content=_canonicalUrl)
+meta(property="og:image" content=_ogImageUrl)
+meta(property="og:image:width" content="1200")
+meta(property="og:image:height" content="630")
+
+meta(name="twitter:card" content="summary_large_image")
+meta(name="twitter:title" content=_title)
+meta(name="twitter:description" content=_desc)
+meta(name="twitter:image" content=_ogImageUrl)
+
+if typeof twitterSite === "string" && twitterSite.trim()
+  meta(name="twitter:site" content=twitterSite.trim())
+
+link(rel="canonical" href=_canonicalUrl)

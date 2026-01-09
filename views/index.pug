@@ -1,33 +1,48 @@
+//- views/index.pug
 extends ./layout.pug
 include ./mixins/responsive-grid-mixin.pug
 
-//- Optional homepage-only head additions.
-//- Best practice is to set title/description/canonical/ogImage in your route locals,
-//- but this provides a safe OG image fallback if you haven't wired ogImage/defaultOgImage yet.
-
-  - var _hasOg = ((typeof ogImage !== "undefined" && ogImage) || (typeof defaultOgImage !== "undefined" && defaultOgImage)) ? true : false;
-  - var _canon = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
-  - var _origin = "";
-  - if (_canon) { try { _origin = (new URL(_canon)).origin; } catch (e) { _origin = ""; } }
-
-  //- Only add fallback OG/Twitter image if layout isn't already receiving one.
-  if !_hasOg
-    - var _homeOgAbs = _origin ? (_origin + "/images/og/home.jpg") : "/images/og/home.jpg";
-    meta(property="og:image" content=_homeOgAbs)
-    meta(name="twitter:image" content=_homeOgAbs)
+  //- Page meta consumed by layout.pug
+  - var siteName = "Aptati Arcade"
+  - var title = "Aptati Arcade"
+  - var description = "Snack-size games and daily puzzles on Aptati Arcade."
+  - var canonical = "https://aptati.com/"
+  - var ogImage = "/images/og/index-og_1200x675.webp"
+  - var defaultOgImage = "/images/og/index-og_1200x675.webp"
+  - var ogWidth = 1200
+  - var ogHeight = 675
 
 block content
+  //- Optional visible hero image (not required for OG, but fine to keep)
+  img(
+    src="/images/og/index-og_1200x675.webp"
+    alt="Aptati Arcade: playful games you can play online"
+    loading="lazy"
+    decoding="async"
+  )
 
   +responsiveGrid("380px", 3, "1rem", "grid-item grid-item-card-link")
-    a(href="/games/game1") 
-      h3 Game 1
-      img(src="/images/placeholder1.jpg" alt="Game 1 Preview Image")
-    a(href="/games/game2") 
-      h3 Game 2
-      img(src="/images/placeholder1.jpg" alt="Game 1 Preview Image")
-    a(href="/games/game3") 
-      h3 Game 3
-      img(src="/images/placeholder1.jpg" alt="Game 1 Preview Image")
+    a(href="/games/game1")
+      img(
+        src="/images/tiles/word-tile_1200x1200.webp"
+        alt="Daily Word"
+        loading="lazy"
+        decoding="async"
+      )
+    a(href="/games/game2")
+      img(
+        src="/images/tiles/word-tile_1200x1200.webp"
+        alt="Game 2"
+        loading="lazy"
+        decoding="async"
+      )
+    a(href="/games/game3")
+      img(
+        src="/images/og/index-og_1200x675.webp"
+        alt="Game 3"
+        loading="lazy"
+        decoding="async"
+      )
 
   h3 1st commit
   +responsiveGrid("380px", 3, ".4rem", "grid-item grid-item-special")

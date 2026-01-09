@@ -5,19 +5,29 @@ html(lang="en")
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1")
 
-    //- ---------- Defaults (override via res.locals in routes) ----------
-    - var _title    = (typeof title !== "undefined" && title) ? String(title) : "Site";
-    - var _desc     = (typeof description !== "undefined" && description) ? String(description) : "Static Node site";
-    - var _canon    = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
-    - var _siteName = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Site";
-    - var _ogType   = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";
-    - var _ogImage  = (typeof ogImage !== "undefined" && ogImage) ? String(ogImage) : ((typeof defaultOgImage !== "undefined" && defaultOgImage) ? String(defaultOgImage) : "");
-    - var _twCard   = (typeof twitterCard !== "undefined" && twitterCard) ? String(twitterCard) : "summary_large_image";
-    - var _twImage  = (typeof twitterImage !== "undefined" && twitterImage) ? String(twitterImage) : (_ogImage || "");
-    - var _twSite   = (typeof twitterSite !== "undefined" && twitterSite) ? String(twitterSite) : "";
-    - var _twCreator= (typeof twitterCreator !== "undefined" && twitterCreator) ? String(twitterCreator) : "";
-    - var _robots   = (typeof robots !== "undefined" && robots) ? String(robots) : "";
-    - var _gaId     = (typeof gaId !== "undefined" && gaId) ? String(gaId) : "";
+    //- ---------- Defaults (override via res.locals in routes or vars in child views) ----------
+    - var _title     = (typeof title !== "undefined" && title) ? String(title) : "Site";
+    - var _desc      = (typeof description !== "undefined" && description) ? String(description) : "Static Node site";
+    - var _canon     = (typeof canonical !== "undefined" && canonical) ? String(canonical) : "";
+    - var _siteName  = (typeof siteName !== "undefined" && siteName) ? String(siteName) : "Site";
+    - var _ogType    = (typeof ogType !== "undefined" && ogType) ? String(ogType) : "website";
+    - var _ogImage   = (typeof ogImage !== "undefined" && ogImage) ? String(ogImage) : ((typeof defaultOgImage !== "undefined" && defaultOgImage) ? String(defaultOgImage) : "");
+    - var _ogWidth   = (typeof ogWidth !== "undefined" && ogWidth) ? String(ogWidth) : "";
+    - var _ogHeight  = (typeof ogHeight !== "undefined" && ogHeight) ? String(ogHeight) : "";
+    - var _twCard    = (typeof twitterCard !== "undefined" && twitterCard) ? String(twitterCard) : "summary_large_image";
+    - var _twImage   = (typeof twitterImage !== "undefined" && twitterImage) ? String(twitterImage) : (_ogImage || "");
+    - var _twSite    = (typeof twitterSite !== "undefined" && twitterSite) ? String(twitterSite) : "";
+    - var _twCreator = (typeof twitterCreator !== "undefined" && twitterCreator) ? String(twitterCreator) : "";
+    - var _robots    = (typeof robots !== "undefined" && robots) ? String(robots) : "";
+    - var _gaId      = (typeof gaId !== "undefined" && gaId) ? String(gaId) : "";
+
+    //- Make OG/Twitter image absolute when canonical is absolute (helps scrapers)
+    - var _origin = "";
+    - if (_canon) { try { _origin = (new URL(_canon)).origin; } catch (e) { _origin = ""; } }
+    - var _ogImageAbs = _ogImage;
+    - if (_ogImageAbs && _origin && _ogImageAbs.startsWith("/")) { _ogImageAbs = _origin + _ogImageAbs; }
+    - var _twImageAbs = _twImage;
+    - if (_twImageAbs && _origin && _twImageAbs.startsWith("/")) { _twImageAbs = _origin + _twImageAbs; }
 
     //- ---------- Core SEO ----------
     title #{_title}
@@ -36,15 +46,19 @@ html(lang="en")
     meta(property="og:type" content=_ogType)
     if _canon
       meta(property="og:url" content=_canon)
-    if _ogImage
-      meta(property="og:image" content=_ogImage)
+    if _ogImageAbs
+      meta(property="og:image" content=_ogImageAbs)
+      if _ogWidth
+        meta(property="og:image:width" content=_ogWidth)
+      if _ogHeight
+        meta(property="og:image:height" content=_ogHeight)
 
     //- ---------- Twitter ----------
     meta(name="twitter:card" content=_twCard)
     meta(name="twitter:title" content=_title)
     meta(name="twitter:description" content=_desc)
-    if _twImage
-      meta(name="twitter:image" content=_twImage)
+    if _twImageAbs
+      meta(name="twitter:image" content=_twImageAbs)
     if _canon
       meta(name="twitter:url" content=_canon)
     if _twSite
@@ -94,8 +108,7 @@ html(lang="en")
     include ./partials/footer.pug
 
     //- ✅ Core scripts always loaded (cannot be overridden by child templates)
-script(src="/js/aptati-consent.js" defer)
-
+    script(src="/js/aptati-consent.js" defer)
     script(src="/js/nav-toggle.js" defer)
     script(src="/js/contact-modal.js" defer)
 

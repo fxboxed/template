@@ -1,11 +1,13 @@
 //- views/partials/wordle-game.pug
 
 mixin wordleGame(opts)
-  - const gameKey = (opts && opts.gameKey) || 'wordle'
+  - const gameKey = (opts && opts.gameKey) || 'daily-word'
   - const idx = (opts && typeof opts.idx === 'number') ? opts.idx : 0
   - const maxIdx = (opts && typeof opts.maxIdx === 'number') ? opts.maxIdx : 49
   - const premiumEnabled = !!(opts && opts.premiumEnabled)
   - const dayKey = (opts && opts.dayKey) ? opts.dayKey : ''
+  - const prevAnswersEndpoint = (opts && opts.prevAnswersEndpoint) ? String(opts.prevAnswersEndpoint) : "/api/games/game1/answers"
+
   .wordle-game-wrap
     .game.wordle-game(
       data-game-key=gameKey
@@ -14,11 +16,11 @@ mixin wordleGame(opts)
       data-max-idx=maxIdx
       data-premium-enabled=premiumEnabled ? '1' : '0'
       data-status="playing"
-      data-prev-answers-endpoint="/api/games/game1/answers"
+      data-prev-answers-endpoint=prevAnswersEndpoint
     )
       header.game-header
-        h1.game-title Aptati Wankers Wordle
-        p No cheating BOGGIE MARSH
+        h1.game-title Daily Word
+        p Guess the 5-letter word. No stress, just taps.
 
         .previous-answers-wrap
           button.previous-answer-btn(
@@ -63,17 +65,17 @@ mixin wordleGame(opts)
           .wordle-board#wordle-board(role="grid" aria-label="Word grid")
             //- Row-score toasts (0..10)
             #wordle-rowToastHost.wordle-row-toast-host(role="status" aria-live="polite" aria-atomic="true")
-              .wordle-row-toast(data-tier="10") Perfect! 10/10. The grand master has arrived
-              .wordle-row-toast(data-tier="9") 9/10 About as good as it gets for a!
-              .wordle-row-toast(data-tier="8") 8/10 Getting there, albeit about as quick as a snail
-              .wordle-row-toast(data-tier="7") 7/10 You're not too shabby at this are you?
-              .wordle-row-toast(data-tier="6") 6/10 Think you're smart eh?
-              .wordle-row-toast(data-tier="5") 5/10 Found a dictionary then?
-              .wordle-row-toast(data-tier="4") 4/10 Tool the sharpest box in the not
-              .wordle-row-toast(data-tier="3") 3/10 Soon be able to walk upright
-              .wordle-row-toast(data-tier="2") 2/10 Ever heard of a dictionary?
-              .wordle-row-toast(data-tier="1") 1/10 Hello knuckle scraper
-              .wordle-row-toast(data-tier="0") 0/10 You pathetic numpty
+              .wordle-row-toast(data-tier="10") Perfect! 10/10.
+              .wordle-row-toast(data-tier="9") 9/10 Very sharp.
+              .wordle-row-toast(data-tier="8") 8/10 Strong.
+              .wordle-row-toast(data-tier="7") 7/10 Nice work.
+              .wordle-row-toast(data-tier="6") 6/10 Warming up.
+              .wordle-row-toast(data-tier="5") 5/10 Halfway there.
+              .wordle-row-toast(data-tier="4") 4/10 Keep going.
+              .wordle-row-toast(data-tier="3") 3/10 You can do it.
+              .wordle-row-toast(data-tier="2") 2/10 Rough start.
+              .wordle-row-toast(data-tier="1") 1/10 Oof.
+              .wordle-row-toast(data-tier="0") 0/10
 
             #running-commentary.running-commentary
               p RUNNING COMMENTARY TOAST.

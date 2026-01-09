@@ -1,0 +1,24 @@
+//- views/games/daily-word.pug
+extends ../layout.pug
+include ../partials/wordle-game.pug
+
+//- Page meta consumed by layout.pug
+- var siteName = "Aptati Arcade"
+- var title = "Daily Word"
+- var description = "Guess today’s 5-letter word on Aptati Arcade."
+- var canonical = "https://aptati.com/games/daily-word"
+- var ogImage = "/images/og/word-og_1200x675.webp"
+- var defaultOgImage = "/images/og/word-og_1200x675.webp"
+- var ogWidth = 1200
+- var ogHeight = 675
+
+block content
+  +wordleGame({
+    gameKey: 'daily-word',
+    dayKey: (typeof dayKey !== 'undefined' ? dayKey : ''),
+    idx: (typeof idx !== 'undefined' ? idx : 0),
+    maxIdx: (typeof maxIdx !== 'undefined' ? maxIdx : 49),
+    premiumEnabled: (typeof premiumEnabled !== 'undefined' ? premiumEnabled : false),
+    // Keep current endpoint until you rename backend routes:
+    prevAnswersEndpoint: "/api/games/game1/answers"
+  })
