@@ -9,3 +9,13 @@ coverage/
 # secrets
 .env
 __ testing/env.txt
+
+# never commit env files
+.env
+.env.*
+.env.bak*
+
+# never commit env files
+.env
+.env.*
+.env.bak*
