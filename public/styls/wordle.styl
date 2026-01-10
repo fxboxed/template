@@ -367,11 +367,29 @@
           background rgba(0,0,0,0.06)
           font-variant-numeric tabular-nums
 
+        // ✅ CLEAN 2x2 BUTTON GRID:
+        // Row 1: Copy result | Copy link
+        // Row 2: Facebook    | Close
         .share-actions
           margin-top 10px
-          display flex
+          display grid
+          grid-template-columns repeat(2, minmax(0, 1fr))
           gap 10px
-          flex-wrap wrap
+          align-items stretch
+
+          button
+            width 100%
+            display inline-flex
+            align-items center
+            justify-content center
+
+@media (max-width: 360px)
+  .wordle-game-wrap
+    .wordle-game
+      .game-footer
+        .share-panel
+          .share-actions
+            grid-template-columns 1fr
 
 @media (prefers-color-scheme: dark)
   .wordle-game-wrap

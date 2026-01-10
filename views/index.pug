@@ -3,6 +3,8 @@ extends ./layout.pug
 include ./mixins/responsive-grid-mixin.pug
 
 block content
+
+
   img(
     src="/images/og/index-og_1200x675.webp"
     alt="Aptati Arcade: playful games you can play online"
@@ -33,15 +35,105 @@ block content
         decoding="async"
       )
 
-  h3 1st commit
-  +responsiveGrid("380px", 3, ".4rem", "grid-item grid-item-special")
-    span Node.js static template using Express, Pug and Stylus.
-    span 404 page is active.
-    span.special Basic routing is functional.
-    span Header and footer partials (both with own navigation).
-    span All content is stored on the server and rendered using Pug.
-    span Responsive modular grid mixin. accepts min width, max columns, gap and class name(s).
-    span Responsive navigation partial
-    span Light, dark, alpha, beta color mixins
-    span Basic SEO and Open Graph meta tags in layout.pug
-    span Contact modal partial
+  .story
+    h2 The Chronicles of Dave Norris and Dean Spiby
+    p
+      | Dave and Dean are the sort of lifelong friends who look like they were assembled out of spare parts behind a pub at 2:11 a.m.,
+      | then immediately tried to pay for crisps with a button and “vibes.”
+      | If moral standards were a ladder, they wouldn’t be on the bottom rung.
+      | They’d be underneath the ladder, digging a little basement, arguing about whose turn it is to hold the torch, and somehow still getting it wrong.
+
+    p
+      | Dave is the human equivalent of a pocket full of warm coins: technically useful, faintly upsetting, and always making that clink sound of poor decisions in motion.
+      | He has the energy of a man who has said, “It’ll be fine,” moments before something became absolutely not fine.
+      | He doesn’t cut corners so much as remove them entirely and insist the shape is “more aerodynamic” now.
+      | He’s the kind of friend who shows up to help you move and brings exactly one glove.
+      | Not a pair. One glove. He calls it “efficiency.”
+
+    p
+      | Dean, meanwhile, is what happens when you give a raccoon a driver’s license and a strong opinion about Bluetooth speakers.
+      | Dean doesn’t enter a room. He announces himself to it, spiritually and acoustically.
+      | He laughs like he’s trying to teach hyenas how to commit to the bit.
+      | If you told him “don’t touch that,” he wouldn’t just touch it.
+      | He’d give it a nickname, put it in his pocket, and later insist it “followed him home.”
+      | Dean has never met a boundary he couldn’t interpret as a suggestion.
+
+    p
+      | Together, they form a two-man disaster franchise.
+      | They are the before-and-after photos of “seemed like a good idea at the time.”
+      | They’re the reason warning labels exist.
+      | You can’t leave them alone with a reasonable plan because within minutes it becomes an “experiment,” then an “incident,”
+      | then a story that starts with, “Right, so… nobody’s hurt, but…”
+
+    p
+      | They communicate mostly in half-sentences and suspicious silence.
+
+    ul.dialogue
+      li
+        strong Dave:
+        |  “Hypothetically…”
+      li
+        strong Dean:
+        |  “Say less.”
+      li
+        strong Reality:
+        |  immediately files a complaint
+
+    p
+      | Their loyalty is undeniable, though.
+      | If you called either of them at 3 a.m., they’d answer on the second ring.
+      | Not to help, necessarily, but to be present and provide emotional support in the form of bad advice and a snack they found “in the car.”
+      | They’d both show up, too: Dave with a torch that’s already dimming, Dean with a plastic bag containing something that clinks and definitely shouldn’t.
+
+    p
+      | And it’s not that they’re evil. That would require ambition and follow-through.
+      | No, Dave and Dean are more like chaos with friendship bracelets.
+      | Two gremlins in adult coats, permanently one step away from becoming a local legend for all the wrong reasons.
+      | They’re playfully awful in the way a shopping trolley with one bad wheel is awful:
+      | it’s not trying to ruin your day, but it’s deeply committed to the craft.
+
+    p
+      | Still, credit where it’s due: they’ve stayed friends for life,
+      | which is impressive considering they treat common sense like it’s an optional DLC they refuse to download.
+      | They bicker constantly, but it’s the affectionate kind,
+      | like two stray dogs arguing over the best bin behind the nicest restaurant.
+
+    p
+      | If Dave and Dean ever got jobs as guardian angels, the paperwork would be spectacular.
+
+    blockquote
+      p
+        | “Subject survived.”
+      p
+        | “How?”
+      p
+        | “Dean distracted the danger by starting an argument with it.”
+      p
+        | “And Dave?”
+      p
+        | “Dave tried to help. We don’t discuss that part.”
+
+    p
+      | So yes, Dave and Dean are the lowest forms of depravity in the very specific sense
+      | that they will absolutely eat the last slice, deny it to your face,
+      | and then help you look for it with sincere concern and a mouth full of evidence.
+      | But they’re your depraved little goblins, and somehow, inexplicably,
+      | the world is funnier (and slightly less structurally sound) with them in it. 🧃🧯
+
+
+
+
+
+
+
+  //- +responsiveGrid("380px", 3, ".4rem", "grid-item grid-item-special")
+  //-   span Node.js static template using Express, Pug and Stylus.
+  //-   span 404 page is active.
+  //-   span.special Basic routing is functional.
+  //-   span Header and footer partials (both with own navigation).
+  //-   span All content is stored on the server and rendered using Pug.
+  //-   span Responsive modular grid mixin. accepts min width, max columns, gap and class name(s).
+  //-   span Responsive navigation partial
+  //-   span Light, dark, alpha, beta color mixins
+  //-   span Basic SEO and Open Graph meta tags in layout.pug
+  //-   span Contact modal partial

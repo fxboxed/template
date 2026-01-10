@@ -76,10 +76,6 @@ mixin wordleGame(opts)
               .wordle-row-toast(data-tier="3") 3/10 You can do it.
               .wordle-row-toast(data-tier="2") 2/10 Rough start.
               .wordle-row-toast(data-tier="1") 1/10 Oof.
-              .wordle-row-toast(data-tier="0") 0/10
-
-            #running-commentary.running-commentary
-              p RUNNING COMMENTARY TOAST.
 
             - const rows = 6
             - const cols = 5
@@ -112,16 +108,22 @@ mixin wordleGame(opts)
 
       section.game-footer
         .actions
+          //- REQUIRED: reset (wired by JS: #wordle-resetBtn)
           button#wordle-resetBtn.btn.ghost(type="button") Reset Game
-          button#wordle-helpBtn.btn.ghost(type="button") Help
 
         .share-panel#wordle-sharePanel(hidden)
           h2.share-title Share
           pre#wordle-shareText.share-text(aria-label="Share text")
 
           .share-actions
+            //- REQUIRED: copy result (wired by JS: #wordle-copyBtn)
             button#wordle-copyBtn.btn(type="button") Copy result
+
+            //- REQUIRED: copy link (wired by JS: #wordle-copyLinkBtn)
             button#wordle-copyLinkBtn.btn.ghost(type="button") Copy link
-            button#wordle-nativeShareBtn.btn.ghost(type="button") Share…
+
+            //- REQUIRED: open Facebook share window (wired by JS: #wordle-fbBtn)
             button#wordle-fbBtn.btn.ghost(type="button") Facebook
+
+            //- REQUIRED: close panel (wired by JS: #wordle-closeShareBtn)
             button#wordle-closeShareBtn.btn.ghost(type="button") Close
