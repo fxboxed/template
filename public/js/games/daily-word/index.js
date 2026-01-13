@@ -29,7 +29,9 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const WORD_LEN = 5;
 const MAX_ATTEMPTS = 6;
 
-const STATE_RANK = { empty: 0, absent: 0, present: 1, correct: 2 };
+// ✅ FIX (minimal): absent must outrank empty, but stay below present/correct.
+const STATE_RANK = { empty: 0, absent: 1, present: 2, correct: 3 };
+
 const EMOJI = { absent: "⬛", present: "🟨", correct: "🟩" };
 
 const ROW_TOAST_MS = 2500;
