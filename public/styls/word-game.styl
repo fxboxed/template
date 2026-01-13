@@ -1,7 +1,12 @@
-// public/styls/wordle.styl
+// public/styls/word-game.styl
+// State color rules (YOUR mapping):
+// - correct  => safe
+// - present  => warning
+// - absent   => danger
+// (Use the actual words safe/warning/danger in the CSS.)
 
 .wordle-game-wrap
-  background alpha - 40%
+  background rgba(alpha - 60%, 0.08)
   width fit-content
   margin 0rem auto
   padding 0
@@ -11,6 +16,8 @@
     margin 0 auto
     border-radius 16px
     width 100vw
+    background rgba(alpha - 70%, 0.08)
+    border 1px solid rgba(alpha + 20%, 0.14)
 
     .game-header
       display flex
@@ -21,9 +28,11 @@
       line-height 1
       position relative
       z-index 3
+      padding 12px 12px 0 12px
 
       .game-title
         margin 0
+        width 100%
         font-size clamp(22px, 2.4vw, 34px)
         line-height 1
         height 4rem
@@ -31,7 +40,8 @@
         align-items center
         justify-content center
         text-align center
-        border-bottom 1px solid alpha + 20%
+        border-bottom 1px solid rgba(alpha + 30%, 0.22)
+        color alpha + 60%
 
       .previous-answers-wrap
         position relative
@@ -44,13 +54,16 @@
 
       .previous-answer-btn
         padding 8px 12px
-        border 1px solid alpha
+        border 1px solid rgba(alpha + 30%, 0.24)
         border-radius 10px
-        background alpha - 10%
+        background rgba(alpha - 70%, 0.14)
         color alpha + 60%
         cursor pointer
         width fit-content
         margin-bottom .6rem
+
+        &:hover
+          background rgba(alpha - 70%, 0.18)
 
         &:active
           transform translateY(1px)
@@ -62,20 +75,17 @@
         transform translateX(-50%) translateY(-8px) scale(.98)
         opacity 0
         pointer-events none
-
         width min(424px, 96vw)
-
-        border 1px solid alpha - 10%
+        border 1px solid rgba(alpha + 20%, 0.18)
         border-radius 12px
-        background alpha - 20%
+        background rgba(alpha - 80%, 0.22)
         color alpha + 60%
         padding 10px
         box-sizing border-box
         z-index 60
-
         transition opacity 800ms ease, transform 800ms ease
         will-change opacity, transform
-        box-shadow 0 12px 30px rgba(0,0,0,.18)
+        box-shadow 0 12px 30px rgba(dark, 0.18)
 
         &.is-open
           opacity 1
@@ -96,7 +106,8 @@
           margin 0 0 8px 0
           padding 6px 8px
           border-radius 10px
-          background rgba(alpha - 70%, 0.18)
+          background rgba(alpha - 70%, 0.14)
+          border 1px solid rgba(alpha + 20%, 0.14)
           opacity .95
 
         .previous-answers-list
@@ -114,7 +125,8 @@
             gap 12px
             padding 6px 8px
             border-radius 10px
-            background rgba(alpha - 70%, 0.18)
+            background rgba(alpha - 70%, 0.14)
+            border 1px solid rgba(alpha + 20%, 0.12)
             white-space nowrap
 
             .prev-date
@@ -141,6 +153,7 @@
         align-items center
         justify-content center
         width 100%
+        margin-top .35rem
 
       .timer-line,
       .attempts-line,
@@ -148,6 +161,7 @@
         margin 0
         opacity 0.92
         margin auto
+        color alpha + 50%
 
       .countdown
         margin-left 8px
@@ -158,10 +172,22 @@
         font-variant-numeric tabular-nums
 
       .puzzle-picker
+        margin-top .35rem
+
         label
           margin-right 8px
+          color alpha + 50%
+
+        select
+          border 1px solid rgba(alpha + 20%, 0.2)
+          border-radius 10px
+          background rgba(alpha - 70%, 0.12)
+          color alpha + 60%
+          padding 6px 10px
 
     .game-stage
+      padding 0 12px
+
       .wordle
         display grid
         gap 18px
@@ -190,13 +216,13 @@
             transform translateX(-18px) translateY(-50%)
             transition opacity 180ms ease, transform 180ms ease
             will-change opacity, transform
-            background alpha - 20%
+            background rgba(alpha - 80%, 0.24)
             color alpha + 60%
-            border 1px solid alpha - 10%
+            border 1px solid rgba(alpha + 20%, 0.18)
             border-radius 12px
             padding 10px 12px
             text-align center
-            box-shadow 0 10px 24px rgba(0,0,0,.18)
+            box-shadow 0 10px 24px rgba(dark, 0.18)
             min-height 3rem
 
             &.is-show
@@ -211,7 +237,7 @@
             min-height 5rem
             padding 1rem
             margin 0 auto
-            background alpha - 20%
+            background rgba(alpha - 80%, 0.24)
             color alpha + 50%
             border-radius 8px
             text-align center
@@ -228,33 +254,39 @@
               height 4.3rem
               display grid
               place-items center
-              border-radius 10px
-              border 2px solid var(--w-empty-border)
-              background alpha
-              font-weight 700
+              border-radius 12px
+              background rgba(alpha - 75%, 0.10)
+              border 1px solid rgba(alpha + 20%, 0.18)
+              color alpha + 60%
+              font-weight 800
               font-size 2rem
               text-transform uppercase
               line-height 1
               letter-spacing 0.5px
 
               &[data-state="empty"]
-                color alpha + 60%
-                border none
+                background rgba(alpha - 75%, 0.10)
+                border 1px solid rgba(alpha + 20%, 0.14)
+                color alpha + 55%
 
+              // YOUR mapping:
+              // absent  => danger
               &[data-state="absent"]
-                background rgba(alpha - 70%, 0.4)
-                color alpha !important
-                border none
+                background danger
+                border 1px solid danger + 20%
+                color light !important
 
+              // present => warning
               &[data-state="present"]
-                background rgba(beta, 0.7)
-                color alpha + 60% !important
-                border none
+                background warning
+                border 1px solid warning + 20%
+                color dark !important
 
+              // correct => safe
               &[data-state="correct"]
-                background rgba(green, .5)
-                color alpha + 60% !important
-                border none
+                background safe
+                border 1px solid safe + 20%
+                color light !important
 
           &.is-revealing .wordle-tile
             transform-style preserve-3d
@@ -274,57 +306,71 @@
 
             .kb-key
               appearance none
-              background alpha
+              background rgba(alpha - 70%, 0.14)
               color alpha + 60%
-              border-radius 50%
+              border 1px solid rgba(alpha + 20%, 0.16)
+              border-radius 14px
               padding 8px 8px
-              max-width 32px
-              max-height 32px
+              max-width 34px
+              max-height 34px
               font-size 1rem
-              height 30px
-              width 30px
-              font-weight 700
+              height 32px
+              width 32px
+              font-weight 800
               cursor pointer
               touch-action manipulation
               user-select none
               display flex
               align-items center
               justify-content center
-              transition all 1s ease-in-out
+              transition background 180ms ease, transform 120ms ease, opacity 180ms ease
+
+              &:hover
+                background rgba(alpha - 70%, 0.18)
 
               &:active
                 transform translateY(1px)
 
+              // YOUR mapping:
+              // absent  => danger
               &[data-state="absent"]
-                background rgba(alpha - 70%, 0.4)
-                color alpha !important
+                background danger
+                border 1px solid danger + 20%
+                color light !important
 
+              // present => warning
               &[data-state="present"]
-                background rgba(beta, 0.7)
-                border none
-                color alpha + 50%
+                background warning
+                border 1px solid warning + 20%
+                color dark !important
 
+              // correct => safe
               &[data-state="correct"]
-                background rgba(green, .5)
-                border-color none
-                color alpha + 80%
+                background safe
+                border 1px solid safe + 20%
+                color light !important
 
               &.backspace
-                background alpha - 20%
+                background rgba(alpha - 80%, 0.18)
                 width fit-content
-                border-radius 0
-                border 1px solid alpha - 20%
-                padding 2px 8px
+                border-radius 12px
+                border 1px solid rgba(alpha + 20%, 0.16)
+                padding 2px 10px
 
           .enter-key
-            border 1px solid alpha
-            padding 8px 12px
-            color alpha + 80%
+            border 1px solid rgba(alpha + 30%, 0.22)
+            border-radius 12px
+            padding 10px 12px
+            background rgba(alpha - 70%, 0.14)
+            color alpha + 70%
             margin-top .6rem
             width 100%
 
+            &:hover
+              background rgba(alpha - 70%, 0.18)
+
     .game-footer
-      padding 1rem
+      padding 1rem 12px 14px 12px
       margin-top 14px
       display grid
       gap 10px
@@ -336,26 +382,43 @@
         flex-wrap wrap
         color alpha
 
-      .ghost
+      .btn
         padding 8px 12px
-        border 1px solid alpha
-        border-radius 8px
-        color alpha + 40%
+        border 1px solid rgba(alpha + 20%, 0.18)
+        border-radius 10px
+        background rgba(alpha - 70%, 0.12)
+        color alpha + 60%
+
+        &:hover
+          background rgba(alpha - 70%, 0.16)
+
+        &:active
+          transform translateY(1px)
+
+      .ghost
+        background transparent
+        border 1px solid rgba(alpha + 20%, 0.22)
+        color alpha + 50%
+
+        &:hover
+          background rgba(alpha - 70%, 0.10)
 
       .toast-line
         min-height 20px
         font-size 14px
         opacity 0.95
+        color alpha + 55%
 
       .share-panel
         margin-top 10px
         padding 12px
         border-radius 14px
-        border 1px solid rgba(0,0,0,0.14)
-        background rgba(0,0,0,0.04)
+        border 1px solid rgba(alpha + 20%, 0.16)
+        background rgba(alpha - 80%, 0.10)
 
         .share-title
           margin 0 0 8px 0
+          color alpha + 60%
 
         .share-text
           margin 0
@@ -363,13 +426,11 @@
           word-break break-word
           padding 10px
           border-radius 12px
-          border 1px solid rgba(0,0,0,0.12)
-          background rgba(0,0,0,0.06)
+          border 1px solid rgba(alpha + 20%, 0.14)
+          background rgba(alpha - 80%, 0.12)
           font-variant-numeric tabular-nums
+          color alpha + 55%
 
-        // ✅ CLEAN 2x2 BUTTON GRID:
-        // Row 1: Copy result | Copy link
-        // Row 2: Facebook    | Close
         .share-actions
           margin-top 10px
           display grid
@@ -393,25 +454,30 @@
 
 @media (prefers-color-scheme: dark)
   .wordle-game-wrap
+    background rgba(dark, 0.20)
+
     .wordle-game
+      background rgba(dark, 0.18)
+      border 1px solid rgba(alpha + 20%, 0.16)
+
       .game-header
         .previous-answers
-          box-shadow 0 12px 30px rgba(0,0,0,.35)
+          box-shadow 0 12px 30px rgba(dark, 0.35)
 
       .game-stage
         .wordle
           .wordle-board
             .wordle-row-toast
-              box-shadow 0 12px 30px rgba(0,0,0,.35)
+              box-shadow 0 12px 30px rgba(dark, 0.35)
 
       .game-footer
         .share-panel
-          border 1px solid rgba(255,255,255,0.14)
-          background rgba(255,255,255,0.06)
+          border 1px solid rgba(alpha + 20%, 0.14)
+          background rgba(dark, 0.16)
 
           .share-text
-            border 1px solid rgba(255,255,255,0.12)
-            background rgba(0,0,0,0.25)
+            border 1px solid rgba(alpha + 20%, 0.12)
+            background rgba(dark, 0.22)
 
 @keyframes wordleShake
   0%

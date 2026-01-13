@@ -1,56 +1,76 @@
-* 
-    margin 0
-    padding 0
-    box-sizing border-box
-    max-width 100%
+// public/styls/global.styl
 
-alpha = #3498db
-beta =  #db7633
-warning = #db7633
-danger = #c0392b
+// -------- Palette (ONLY names you allowed) --------
+alpha   = #6495ED //#4F46E5   // primary
+beta    = #E76F51   // warm orange-coral
+warning = #E76F51      // SAME as beta (your rule)
+safe    = #2AA876   // green (teal-leaning)
+danger  = #B4232C   // deeper red
+light   = #ffffff
+dark    = #000000
+
 max-width = 1200px
-body
-    font-family 'Arial', sans-serif
-    background alpha - 40%
-    color alpha - 60%
-    //min-height 100vh
-p 
-    color alpha + 60%
-h3  
-    font-size 1.3rem
-    color alpha + 10%
-h1  
-    font-size 1.4rem
-.site-main 
-    //margin-top 4.1rem
-    width 100%
-    max-width max-width
-    margin 0 auto
-    //background yellow
-    padding 0
-@media(min-width 960px)
-    .site-main 
-        padding 1rem 0
-a
-    text-decoration none
-    color alpha
-    &:hover
-        color beta
-hr  
-    border none
-    border-top 1px solid alpha + 40%
-    margin 1rem auto
-    width 60%
-button 
-    cursor pointer
-    font-size 16px
-    border none
-    background transparent
-    outline none
-    &:hover
-        opacity 0.9
 
-    
-    margin 0 auto
+// -------- Reset / base --------
+*
+  margin 0
+  padding 0
+  box-sizing border-box
+  max-width 100%
+
+html, body
+  height 100%
+
+body
+  font-family 'Arial', sans-serif
+  background alpha - 40%
+  color alpha + 60%
+  -webkit-font-smoothing antialiased
+  -moz-osx-font-smoothing grayscale
+
+p
+  color alpha + 60%
+
+h1
+  font-size 1.4rem
+  color alpha + 60%
+
+h3
+  font-size 1.3rem
+  color alpha + 20%
+
+a
+  text-decoration none
+  color alpha
+
+  &:hover
+    color beta
+
+hr
+  border none
+  border-top 1px solid alpha + 40%
+  margin 1rem auto
+  width 60%
+
+button
+  cursor pointer
+  font-size 16px
+  border none
+  background transparent
+  outline none
+
+  &:hover
+    opacity 0.9
+
+.site-main
+  width 100%
+  max-width max-width
+  margin 0 auto
+  padding 0
+
+@media (min-width: 960px)
+  .site-main
+    padding 1rem 0
+
 .txt-center
-    text-align center
+  text-align center
