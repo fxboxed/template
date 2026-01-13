@@ -29,7 +29,8 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const WORD_LEN = 5;
 const MAX_ATTEMPTS = 6;
 
-// ✅ FIX (minimal): absent must outrank empty, but stay below present/correct.
+// ✅ FIX: absent must outrank empty so danger can appear on keyboard.
+// present must still outrank absent so warning stays correct.
 const STATE_RANK = { empty: 0, absent: 1, present: 2, correct: 3 };
 
 const EMOJI = { absent: "⬛", present: "🟨", correct: "🟩" };
@@ -117,6 +118,11 @@ function stateStorageKey(gameSlug, puzId) {
 
 function statsStorageKey(gameSlug) {
   return `aptati:${gameSlug}:stats`;
+}
+
+// ✅ per-day "played" lock key (prevents replay via reset/fresh link)
+function playedStorageKey(gameSlug, dayKey, idx) {
+  return `aptati:${gameSlug}:played:${dayKey}:${idx}`;
 }
 
 function safeJsonParse(raw, fallback) {
@@ -779,6 +785,11 @@ function initDailyWord() {
   const { root, dayKey, idx, gameSlug, gameTitle, apiBase, prevAnswersEndpoint } = readGameDataset();
   if (!root) return;
 
+  // Enforce "no reset" UI even if markup includes it.
+  try {
+    $("#wordle-resetBtn")?.remove();
+  } catch {}
+
   const shareParams = readShareParamsFromUrl();
   if (shareParams.scoreToken) renderScoreBanner(shareParams.scoreToken);
 
@@ -787,9 +798,11 @@ function initDailyWord() {
     return;
   }
 
-  // If this page was opened via a shared link (?fresh=1), force an empty grid.
-  // This prevents "share link shows my saved result".
-  if (shareParams.fresh) {
+  const playedKey = playedStorageKey(gameSlug, dayKey, idx);
+  const alreadyPlayed = storage.get(playedKey) === "1";
+
+  // Only allow ?fresh=1 to clear state if this browser has NOT played yet today.
+  if (shareParams.fresh && !alreadyPlayed) {
     clearState(gameSlug, dayKey, idx);
   }
 
@@ -869,6 +882,9 @@ function initDailyWord() {
         toast(why);
         return;
       }
+
+      // Once a valid guess is submitted, lock "played" for today on this browser.
+      if (storage.get(playedKey) !== "1") storage.set(playedKey, "1");
 
       const result = normalizeResultArray(data.result);
       const row = st.guesses.length;
@@ -1011,16 +1027,6 @@ function initDailyWord() {
     const fb = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}${quote}`;
 
     window.open(fb, "_blank", "noopener,noreferrer,width=640,height=480");
-  });
-
-  $("#wordle-resetBtn")?.addEventListener("click", () => {
-    clearState(gameSlug, dayKey, idx);
-
-    st = migrateStateShape({ ...defaultState });
-
-    renderBoard(st);
-    saveState(gameSlug, dayKey, idx, st);
-    toast("Reset locally.");
   });
 
   window.addEventListener("resize", () => {
